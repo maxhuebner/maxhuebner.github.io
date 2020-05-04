@@ -3,6 +3,56 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
+    <loc>/categories/</loc>
+    <lastmod>2020-05-04T18:54:42+02:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/post/maexchen-game/</loc>
+    <lastmod>2020-05-04T18:54:42+02:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/tag/game/</loc>
+    <lastmod>2020-05-04T18:54:42+02:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/category/game/</loc>
+    <lastmod>2020-05-04T18:54:42+02:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/post/</loc>
+    <lastmod>2020-05-04T18:54:42+02:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/tag/r/</loc>
+    <lastmod>2020-05-04T18:54:42+02:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/category/r/</loc>
+    <lastmod>2020-05-04T18:54:42+02:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/tag/rstats/</loc>
+    <lastmod>2020-05-04T18:54:42+02:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/category/rstats/</loc>
+    <lastmod>2020-05-04T18:54:42+02:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/tags/</loc>
+    <lastmod>2020-05-04T18:54:42+02:00</lastmod>
+  </url>
+  
+  <url>
     <loc>/about/</loc>
     <lastmod>2020-01-01T00:00:00+00:00</lastmod>
   </url>
@@ -23,11 +73,6 @@
   </url>
   
   <url>
-    <loc>/categories/</loc>
-    <lastmod>2015-07-23T21:13:14-05:00</lastmod>
-  </url>
-  
-  <url>
     <loc>/post/2015-07-23-r-rmarkdown/</loc>
     <lastmod>2015-07-23T21:13:14-05:00</lastmod>
   </url>
@@ -38,27 +83,12 @@
   </url>
   
   <url>
-    <loc>/post/</loc>
-    <lastmod>2015-07-23T21:13:14-05:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/category/r/</loc>
-    <lastmod>2015-07-23T21:13:14-05:00</lastmod>
-  </url>
-  
-  <url>
     <loc>/tag/r-markdown/</loc>
     <lastmod>2015-07-23T21:13:14-05:00</lastmod>
   </url>
   
   <url>
     <loc>/tag/regression/</loc>
-    <lastmod>2015-07-23T21:13:14-05:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/tags/</loc>
     <lastmod>2015-07-23T21:13:14-05:00</lastmod>
   </url>
   
