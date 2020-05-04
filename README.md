@@ -1,0 +1,1 @@
+This blog is built with [blogdown](https://github.com/rstudio/blogdown) and [Hugo](https://gohugo.io/), with the [Academic](https://sourcethemes.com/academic/) theme. I deploy my blog using [Netlify](https://www.netlify.com/). 
