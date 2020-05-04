@@ -20,7 +20,7 @@
       <description>
 
 
-&lt;p&gt;Mäxchen is a popular german dice game. Its not complex at all, so it can be played by everybody from young to old. While playing it during the last family gathering I wondered what the optimal decicions in this game are. It is quite simple and you can pretty much play it instantly but i wanted to know the exact chances of winning for each dice result. In this blogpost I will simulate playing the game and analyze what your chances of winning are. The rules for this game allow you to lie about your result, but we won’t get into that. Lets get started!&lt;/p&gt;
+&lt;p&gt;Mäxchen is a popular german dice game. It’s not complex at all, so it can be played by everybody from young to old. While playing it during the last family gathering I wondered what the ideal decisions in this game are. It is quite simple and you can pretty much play it instantly but I wanted to know the exact chances of winning for each dice result. In this blogpost I will simulate playing the game and analyze what your chances of winning are. The rules for this game allow you to lie about your result, but we won’t get into that. Lets get started!&lt;/p&gt;
 &lt;div id=&#34;brief-game-rules&#34; class=&#34;section level2&#34;&gt;
 &lt;h2&gt;Brief Game Rules&lt;/h2&gt;
 &lt;p&gt;In this game you roll two dices. The higher dice represents the first digit, the lower one the second digit of your result. For example: 1,3 will get you 31; 2,5 will get you 52; 1,1 will get you 11.&lt;/p&gt;
@@ -28,11 +28,11 @@
 &lt;/div&gt;
 &lt;div id=&#34;simulation&#34; class=&#34;section level2&#34;&gt;
 &lt;h2&gt;Simulation&lt;/h2&gt;
-&lt;p&gt;First we need to simulate the dice rolls. I usually write a function for one simulation, so i will do it here as well:&lt;/p&gt;
+&lt;p&gt;First we need to simulate the dice rolls. I usually write a function for one simulation, so I will do it here as well:&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;roll_game &amp;lt;- function() {
-  r1 &amp;lt;- sample(6,1)
-  r2 &amp;lt;- sample(6,1)
-  
+  r1 &amp;lt;- sample(6, 1)
+  r2 &amp;lt;- sample(6, 1)
+
   if (r1 &amp;gt; r2) {
     r1 * 10 + r2
   } else {
@@ -43,93 +43,101 @@
 roll_game()&lt;/code&gt;&lt;/pre&gt;
 &lt;pre&gt;&lt;code&gt;## [1] 32&lt;/code&gt;&lt;/pre&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;roll_game()&lt;/code&gt;&lt;/pre&gt;
-&lt;pre&gt;&lt;code&gt;## [1] 31&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] 32&lt;/code&gt;&lt;/pre&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;roll_game()&lt;/code&gt;&lt;/pre&gt;
-&lt;pre&gt;&lt;code&gt;## [1] 22&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;I use the sample-Function to generate the dice rolls. After we generated each dice we need to order it to match the rules of the game. These two steps is all we need to do to simulate one roll of the game. Lets expand this to simulate a bunch of games.&lt;/p&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;simulation &amp;lt;- tibble(sim = 1:1e6) %&amp;gt;% 
-  mutate(roll = replicate(n(),roll_game()))
+&lt;pre&gt;&lt;code&gt;## [1] 61&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;I use the sample-Function to generate the dice rolls. After we generated each dice we need to order it to match the rules of the game. These two steps are all we need to do in order to simulate one roll of the game. Lets expand this to simulate a bunch of games.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;simulation &amp;lt;- tibble(sim = 1:1e6) %&amp;gt;%
+  mutate(roll = replicate(n(), roll_game()))
 
 simulation&lt;/code&gt;&lt;/pre&gt;
 &lt;pre&gt;&lt;code&gt;## # A tibble: 1,000,000 x 2
 ##      sim  roll
 ##    &amp;lt;int&amp;gt; &amp;lt;dbl&amp;gt;
-##  1     1    63
-##  2     2    42
-##  3     3    63
-##  4     4    22
-##  5     5    62
-##  6     6    66
-##  7     7    54
-##  8     8    54
-##  9     9    54
-## 10    10    53
+##  1     1    22
+##  2     2    32
+##  3     3    54
+##  4     4    53
+##  5     5    54
+##  6     6    65
+##  7     7    63
+##  8     8    31
+##  9     9    64
+## 10    10    62
 ## # ... with 999,990 more rows&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;Now we have generated a million rolls (in a few seconds).&lt;/p&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;order &amp;lt;- c(15,21,16,1,2,17,3,4,5,18,6,7,8,9,19,10,11,12,13,14,20)
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;order &amp;lt;- c(15, 21, 16, 1, 2, 17, 3, 4, 5, 18, 6, 7, 8, 9, 19, 10, 11, 12, 13, 14, 20)
 
-dist &amp;lt;- simulation %&amp;gt;% 
-  count(roll) %&amp;gt;% 
-  mutate(prob = n / 1e6,
-         roll = as.factor(roll),
-         order = order) %&amp;gt;% 
+dist &amp;lt;- simulation %&amp;gt;%
+  count(roll) %&amp;gt;%
+  mutate(
+    prob = n / 1e6,
+    roll = as.factor(roll),
+    order = order
+  ) %&amp;gt;%
   arrange(order)
 
 dist&lt;/code&gt;&lt;/pre&gt;
 &lt;pre&gt;&lt;code&gt;## # A tibble: 21 x 4
 ##    roll      n   prob order
 ##    &amp;lt;fct&amp;gt; &amp;lt;int&amp;gt;  &amp;lt;dbl&amp;gt; &amp;lt;dbl&amp;gt;
-##  1 31    55365 0.0554     1
-##  2 32    55858 0.0559     2
-##  3 41    55410 0.0554     3
-##  4 42    55350 0.0554     4
-##  5 43    55872 0.0559     5
-##  6 51    55411 0.0554     6
-##  7 52    55502 0.0555     7
-##  8 53    55562 0.0556     8
-##  9 54    55674 0.0557     9
-## 10 61    55828 0.0558    10
+##  1 31    56058 0.0561     1
+##  2 32    55932 0.0559     2
+##  3 41    55889 0.0559     3
+##  4 42    55449 0.0554     4
+##  5 43    55083 0.0551     5
+##  6 51    55332 0.0553     6
+##  7 52    55687 0.0557     7
+##  8 53    55580 0.0556     8
+##  9 54    55673 0.0557     9
+## 10 61    55367 0.0554    10
 ## # ... with 11 more rows&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;As explained before the game has a special order in which they results are sorted. The Vector order maps that sequence to the default numerical order, e.g 31 is the 4th lowest number you can roll but is the worst result you can get in this game. We count the occurence of each dice result.&lt;/p&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;dist %&amp;gt;% 
-  mutate(roll = fct_inorder(roll)) %&amp;gt;% 
-  ggplot(aes(roll,prob)) +
-  geom_col(fill = &amp;#39;darkred&amp;#39;) + 
-  labs(title = &amp;quot;Probability Distribution for &amp;#39;Mäxchen&amp;#39;&amp;quot;,
-       x = &amp;quot;Result&amp;quot;,
-       y = &amp;quot;Probability&amp;quot;) +
+&lt;p&gt;As explained before the game has a special order in which they results are sorted. The Vector order maps that sequence to the default numerical order, e.g. 31 is the 4th lowest number you can roll but is the worst result you can get in this game (11,21,22 are valued higher). We count the occurence of each dice result.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;dist %&amp;gt;%
+  mutate(roll = fct_inorder(roll)) %&amp;gt;%
+  ggplot(aes(roll, prob)) +
+  geom_col(fill = &amp;quot;darkred&amp;quot;) +
+  labs(
+    title = &amp;quot;Probability Distribution for &amp;#39;Mäxchen&amp;#39;&amp;quot;,
+    x = &amp;quot;Result&amp;quot;,
+    y = &amp;quot;Probability&amp;quot;
+  ) +
   scale_y_continuous(labels = scales::percent_format()) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;&lt;img src=&#34;/post/2020-05-04-examining-win-probabilities-playing-maexchen_files/figure-html/unnamed-chunk-4-1.png&#34; width=&#34;2400&#34; /&gt;&lt;/p&gt;
-&lt;p&gt;If you think about it, this result was pretty obvious. For every result without equal digits you have two ways of archiving it: first digit on first dice and second digit on second dice or the other way around. If your result has equal digits you only have one. Thus, the exact probability of every result is 5.556% or 2.778% for same digits results.&lt;/p&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;beat_prob &amp;lt;- dist %&amp;gt;% 
-  mutate(prob = ifelse(roll %in% c(11,22,33,44,55,66), 1/36, 2/36),
-         prob_sum = cumsum(prob),
-         beat = 1 - prob_sum)
+&lt;p&gt;If you think about it, this result was pretty obvious. For every result without equal digits you have two ways of archiving it: first digit on first dice and second digit on second dice or the other way around. If your result has equal digits you only have one. Thus, the exact chance of every result is 5.556% or 2.778% for same digits results.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;beat_prob &amp;lt;- dist %&amp;gt;%
+  mutate(
+    prob = ifelse(roll %in% c(11, 22, 33, 44, 55, 66), 1 / 36, 2 / 36),
+    prob_sum = cumsum(prob),
+    beat = 1 - prob_sum
+  )
 beat_prob&lt;/code&gt;&lt;/pre&gt;
 &lt;pre&gt;&lt;code&gt;## # A tibble: 21 x 6
 ##    roll      n   prob order prob_sum  beat
 ##    &amp;lt;fct&amp;gt; &amp;lt;int&amp;gt;  &amp;lt;dbl&amp;gt; &amp;lt;dbl&amp;gt;    &amp;lt;dbl&amp;gt; &amp;lt;dbl&amp;gt;
-##  1 31    55365 0.0556     1   0.0556 0.944
-##  2 32    55858 0.0556     2   0.111  0.889
-##  3 41    55410 0.0556     3   0.167  0.833
-##  4 42    55350 0.0556     4   0.222  0.778
-##  5 43    55872 0.0556     5   0.278  0.722
-##  6 51    55411 0.0556     6   0.333  0.667
-##  7 52    55502 0.0556     7   0.389  0.611
-##  8 53    55562 0.0556     8   0.444  0.556
-##  9 54    55674 0.0556     9   0.5    0.5  
-## 10 61    55828 0.0556    10   0.556  0.444
+##  1 31    56058 0.0556     1   0.0556 0.944
+##  2 32    55932 0.0556     2   0.111  0.889
+##  3 41    55889 0.0556     3   0.167  0.833
+##  4 42    55449 0.0556     4   0.222  0.778
+##  5 43    55083 0.0556     5   0.278  0.722
+##  6 51    55332 0.0556     6   0.333  0.667
+##  7 52    55687 0.0556     7   0.389  0.611
+##  8 53    55580 0.0556     8   0.444  0.556
+##  9 54    55673 0.0556     9   0.5    0.5  
+## 10 61    55367 0.0556    10   0.556  0.444
 ## # ... with 11 more rows&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;Since we now know the exact probability we change our values from the simulation accordingly. We calculate the cumulative sum for every roll. This value represents how likely we roll something worse or as bad as the respective roll. Since we wanna know the probability to beat a roll we have to subtract the calculated probability from 1. Let’s plot the result:&lt;/p&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;beat_prob %&amp;gt;% 
-  mutate(roll = fct_inorder(roll)) %&amp;gt;% 
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;beat_prob %&amp;gt;%
+  mutate(roll = fct_inorder(roll)) %&amp;gt;%
   ggplot(aes(roll, beat)) +
-  geom_col(fill = &amp;#39;darkred&amp;#39;) +
-  geom_text(aes(label = percent(beat)), family = &amp;#39;Roboto&amp;#39;, vjust = -.8) +
-  labs(title = &amp;quot;Probability of beating a result in &amp;#39;Mäxchen&amp;#39;&amp;quot;,
-       x = &amp;quot;Result&amp;quot;,
-       y = &amp;quot;Probability&amp;quot;) +
+  geom_col(fill = &amp;quot;darkred&amp;quot;) +
+  geom_text(aes(label = percent(beat)), family = &amp;quot;Roboto&amp;quot;, vjust = -.8, size = 3) +
+  labs(
+    title = &amp;quot;Probability of beating a result in &amp;#39;Mäxchen&amp;#39;&amp;quot;,
+    x = &amp;quot;Result&amp;quot;,
+    y = &amp;quot;Probability&amp;quot;
+  ) +
   scale_y_continuous(labels = scales::percent_format()) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;&lt;img src=&#34;/post/2020-05-04-examining-win-probabilities-playing-maexchen_files/figure-html/unnamed-chunk-6-1.png&#34; width=&#34;2400&#34; /&gt;&lt;/p&gt;
