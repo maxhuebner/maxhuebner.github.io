@@ -13,6 +13,1345 @@
     </image>
     
     <item>
+      <title>Draft Bargains 2020 (Sleeper)</title>
+      <link>/post/draft-bargains-2020-sleeper/</link>
+      <pubDate>Tue, 18 Aug 2020 00:00:00 +0000</pubDate>
+      <guid>/post/draft-bargains-2020-sleeper/</guid>
+      <description>
+&lt;script src=&#34;/rmarkdown-libs/header-attrs/header-attrs.js&#34;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;Every year I try to compare the rankings on the fantasy football site I play on with consensus expert rankings in order to find exploits.&lt;br /&gt;
+If a player is goes way earlier than he is evalued by experts, I will probably not draft him at all as it is not a good value.&lt;br /&gt;
+If a player goes way later than projected by experts, I will maybe draft him, but I might get him later than I should be, hence the name &lt;strong&gt;Draft Bargain&lt;/strong&gt;.&lt;br /&gt;
+In this post we will compare the consensus Expert Ranking on &lt;a href=&#34;https://www.fantasypros.com/nfl/rankings/half-point-ppr-cheatsheets.php&#34;&gt;FantasyPros&lt;/a&gt; with the previously scraped in-draft rankings from Sleeper. If you want to know how to do this, read &lt;a href=&#34;https://maxhuebner.github.io/post/scraping-rankings-from-sleeper-with-selenium/&#34;&gt;my latest blog post&lt;/a&gt;.&lt;/p&gt;
+&lt;div id=&#34;data-gathering&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Data Gathering&lt;/h3&gt;
+&lt;p&gt;First, we should load our scraped mock ranks. Since we are only interested in &lt;em&gt;skill positions&lt;/em&gt; and Quaterbacks, we remove everything else.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;sleeper_ranks &amp;lt;- 
+  read_csv(&amp;quot;https://maxhuebner.github.io/post/data/sleeper-mock-ranks-2020-08-18.csv&amp;quot;) %&amp;gt;% 
+  filter((pos %in% c(&amp;quot;QB&amp;quot;,&amp;quot;RB&amp;quot;,&amp;quot;WR&amp;quot;,&amp;quot;TE&amp;quot;)))&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Next, we need data to compare. Let’s scrape the data from the FantasyPros-website using the package &lt;em&gt;rvest&lt;/em&gt;. The Data is stored in a &lt;code&gt;&amp;lt;table&amp;gt;&lt;/code&gt; tag so we can us rvest’s function &lt;code&gt;html_table()&lt;/code&gt;.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;fantasypros_url &amp;lt;- &amp;quot;https://www.fantasypros.com/nfl/rankings/half-point-ppr-cheatsheets.php&amp;quot;
+
+fp_html &amp;lt;- read_html(fantasypros_url) %&amp;gt;% 
+  html_table(fill = T) %&amp;gt;% 
+  .[[1]] %&amp;gt;% 
+  as_tibble() %&amp;gt;% 
+  janitor::clean_names()
+
+fp_html&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## # A tibble: 510 x 12
+##    rank  wsid  overall_team pos   bye   best  worst avg   std_dev adp   vs_adp
+##    &amp;lt;chr&amp;gt; &amp;lt;chr&amp;gt; &amp;lt;chr&amp;gt;        &amp;lt;chr&amp;gt; &amp;lt;chr&amp;gt; &amp;lt;chr&amp;gt; &amp;lt;chr&amp;gt; &amp;lt;chr&amp;gt; &amp;lt;chr&amp;gt;   &amp;lt;chr&amp;gt; &amp;lt;chr&amp;gt; 
+##  1 &amp;amp;nbsp &amp;quot;&amp;amp;nb~ &amp;quot;&amp;amp;nbsp&amp;quot;      &amp;quot;&amp;amp;nb~ &amp;quot;&amp;amp;nb~ &amp;quot;&amp;amp;nb~ &amp;quot;&amp;amp;nb~ &amp;quot;&amp;amp;nb~ &amp;quot;&amp;amp;nbsp&amp;quot; &amp;quot;&amp;amp;nb~ &amp;quot;&amp;amp;nbs~
+##  2 Tier~ &amp;quot;&amp;quot;    &amp;quot;&amp;quot;           &amp;quot;&amp;quot;    &amp;quot;&amp;quot;    &amp;quot;&amp;quot;    &amp;quot;&amp;quot;    &amp;quot;&amp;quot;    &amp;quot;&amp;quot;      &amp;quot;&amp;quot;    &amp;quot;&amp;quot;    
+##  3 1     &amp;quot;&amp;quot;    &amp;quot;Christian ~ &amp;quot;RB1&amp;quot; &amp;quot;13&amp;quot;  &amp;quot;1&amp;quot;   &amp;quot;4&amp;quot;   &amp;quot;1.1&amp;quot; &amp;quot;0.3&amp;quot;   &amp;quot;1.0&amp;quot; &amp;quot;0.0&amp;quot; 
+##  4 2     &amp;quot;&amp;quot;    &amp;quot;Saquon Bar~ &amp;quot;RB2&amp;quot; &amp;quot;11&amp;quot;  &amp;quot;1&amp;quot;   &amp;quot;5&amp;quot;   &amp;quot;2.1&amp;quot; &amp;quot;0.5&amp;quot;   &amp;quot;2.0&amp;quot; &amp;quot;0.0&amp;quot; 
+##  5 3     &amp;quot;&amp;quot;    &amp;quot;Ezekiel El~ &amp;quot;RB3&amp;quot; &amp;quot;10&amp;quot;  &amp;quot;2&amp;quot;   &amp;quot;17&amp;quot;  &amp;quot;3.5&amp;quot; &amp;quot;1.7&amp;quot;   &amp;quot;3.0&amp;quot; &amp;quot;0.0&amp;quot; 
+##  6 4     &amp;quot;&amp;quot;    &amp;quot;Alvin Kama~ &amp;quot;RB4&amp;quot; &amp;quot;6&amp;quot;   &amp;quot;3&amp;quot;   &amp;quot;12&amp;quot;  &amp;quot;4.7&amp;quot; &amp;quot;1.3&amp;quot;   &amp;quot;5.0&amp;quot; &amp;quot;+1.0&amp;quot;
+##  7 5     &amp;quot;&amp;quot;    &amp;quot;Michael Th~ &amp;quot;WR1&amp;quot; &amp;quot;6&amp;quot;   &amp;quot;3&amp;quot;   &amp;quot;14&amp;quot;  &amp;quot;6.2&amp;quot; &amp;quot;2.6&amp;quot;   &amp;quot;4.0&amp;quot; &amp;quot;-1.0&amp;quot;
+##  8 6     &amp;quot;&amp;quot;    &amp;quot;Dalvin Coo~ &amp;quot;RB5&amp;quot; &amp;quot;7&amp;quot;   &amp;quot;2&amp;quot;   &amp;quot;21&amp;quot;  &amp;quot;6.8&amp;quot; &amp;quot;2.5&amp;quot;   &amp;quot;7.0&amp;quot; &amp;quot;+1.0&amp;quot;
+##  9 Tier~ &amp;quot;&amp;quot;    &amp;quot;&amp;quot;           &amp;quot;&amp;quot;    &amp;quot;&amp;quot;    &amp;quot;&amp;quot;    &amp;quot;&amp;quot;    &amp;quot;&amp;quot;    &amp;quot;&amp;quot;      &amp;quot;&amp;quot;    &amp;quot;&amp;quot;    
+## 10 7     &amp;quot;&amp;quot;    &amp;quot;Derrick He~ &amp;quot;RB6&amp;quot; &amp;quot;7&amp;quot;   &amp;quot;2&amp;quot;   &amp;quot;28&amp;quot;  &amp;quot;8.3&amp;quot; &amp;quot;3.2&amp;quot;   &amp;quot;6.0&amp;quot; &amp;quot;-1.0&amp;quot;
+## # ... with 500 more rows, and 1 more variable: notes &amp;lt;lgl&amp;gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Unfortunately the data/table is not perfect, so we need to do a bit of data cleaning:&lt;br /&gt;
+- Get rid of rows with non numeric rows (&lt;code&gt;as.numeric(rank)&lt;/code&gt; will make non numeric values &lt;code&gt;NA&lt;/code&gt;)
+- Extract name by matching everything up to the &lt;code&gt;.&lt;/code&gt; and trimming the last 2 characters
+- Extract position by removing the number
+- Extract the team by extracting at least two back to back capital letters (only team names matches this description)&lt;/p&gt;
+&lt;p&gt;After that, we change a few outliers so that our data is acceptable.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;fp_ranks &amp;lt;- fp_html %&amp;gt;% 
+  mutate(rank = as.numeric(rank),
+         name = str_extract(overall_team, &amp;quot;.*\\.&amp;quot;),
+         name = str_sub(name, end = -3),
+         pos = str_extract(pos, &amp;quot;[:upper:]*&amp;quot;),
+         team = str_extract(overall_team, &amp;quot;[:upper:]{2,}&amp;quot;)) %&amp;gt;% 
+  filter(!is.na(rank),
+         pos %in% c(&amp;quot;QB&amp;quot;,&amp;quot;RB&amp;quot;,&amp;quot;WR&amp;quot;,&amp;quot;TE&amp;quot;)) %&amp;gt;% 
+  select(rank, name, pos, team) %&amp;gt;%
+  mutate(team = if_else(team == &amp;quot;JAC&amp;quot;, &amp;quot;JAX&amp;quot;, team),
+         team = if_else(name == &amp;quot;Mark Ingram II&amp;quot;, &amp;quot;BAL&amp;quot;, team)) %&amp;gt;% 
+  add_count(team) %&amp;gt;% 
+  filter(n &amp;gt; 2) %&amp;gt;% 
+  select(-n)
+
+fp_ranks&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## # A tibble: 412 x 4
+##     rank name                pos   team 
+##    &amp;lt;dbl&amp;gt; &amp;lt;chr&amp;gt;               &amp;lt;chr&amp;gt; &amp;lt;chr&amp;gt;
+##  1     1 Christian McCaffrey RB    CAR  
+##  2     2 Saquon Barkley      RB    NYG  
+##  3     3 Ezekiel Elliott     RB    DAL  
+##  4     4 Alvin Kamara        RB    NO   
+##  5     5 Michael Thomas      WR    NO   
+##  6     6 Dalvin Cook         RB    MIN  
+##  7     7 Derrick Henry       RB    TEN  
+##  8     8 Davante Adams       WR    GB   
+##  9     9 Joe Mixon           RB    CIN  
+## 10    10 Julio Jones         WR    ATL  
+## # ... with 402 more rows&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;merging-data&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Merging Data&lt;/h3&gt;
+&lt;p&gt;In order to compare the data we should merge it in a single data frame (or in this case tibble). We want to join by name, position and team so every player has a &lt;code&gt;sleeper_rank&lt;/code&gt; and a &lt;code&gt;fp_rank&lt;/code&gt;.&lt;br /&gt;
+The only problem: The names don’t match up perfectly. To fix that we have to use the awesome package &lt;a href=&#34;https://github.com/dgrtwo/fuzzyjoin&#34;&gt;fuzzyjoin&lt;/a&gt; by David Robinson. We will also use the package &lt;em&gt;stringdist&lt;/em&gt;&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(fuzzyjoin)
+library(stringdist)
+
+adp_tibble &amp;lt;- fp_ranks %&amp;gt;% 
+  fuzzy_left_join(sleeper_ranks,
+                  by = c(&amp;quot;pos&amp;quot;, &amp;quot;team&amp;quot;, &amp;quot;name&amp;quot;),
+                  list(`==`,`==`,function(x,y) stringdist(tolower(x), tolower(y),
+                                                           method=&amp;quot;osa&amp;quot;) &amp;lt;= 6)) %&amp;gt;%
+  select(name = name.x, pos = pos.x, team = team.x,
+         fp = rank.x, sleeper = rank.y) %&amp;gt;%
+  filter(!is.na(sleeper)) %&amp;gt;%
+  mutate(diff = sleeper-fp,
+         category = as.factor(ifelse(diff &amp;gt; 0, &amp;quot;Steal&amp;quot;, &amp;quot;Overhyped&amp;quot;))) %&amp;gt;% 
+  arrange(abs(diff)) %&amp;gt;% 
+  distinct(name, team, pos, .keep_all = T)
+
+adp_tibble&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## # A tibble: 255 x 7
+##    name                pos   team     fp sleeper  diff category 
+##    &amp;lt;chr&amp;gt;               &amp;lt;chr&amp;gt; &amp;lt;chr&amp;gt; &amp;lt;dbl&amp;gt;   &amp;lt;dbl&amp;gt; &amp;lt;dbl&amp;gt; &amp;lt;fct&amp;gt;    
+##  1 Christian McCaffrey RB    CAR       1       1     0 Overhyped
+##  2 Saquon Barkley      RB    NYG       2       2     0 Overhyped
+##  3 Joe Mixon           RB    CIN       9       9     0 Overhyped
+##  4 Kenyan Drake        RB    ARI      17      17     0 Overhyped
+##  5 Kareem Hunt         RB    CLE      62      62     0 Overhyped
+##  6 Matt Breida         RB    MIA      86      86     0 Overhyped
+##  7 Larry Fitzgerald    WR    ARI     183     183     0 Overhyped
+##  8 Brian Hill          RB    ATL     281     281     0 Overhyped
+##  9 Ezekiel Elliott     RB    DAL       3       4     1 Steal    
+## 10 Alvin Kamara        RB    NO        4       3    -1 Overhyped
+## # ... with 245 more rows&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We have three join columns. This &lt;code&gt;fuzzy_left_join()&lt;/code&gt; works the following way:&lt;br /&gt;
+Join first and second column by exact match &lt;code&gt;==&lt;/code&gt;. Join third column (name) by a function that is true, if the stringdist of two names is less or equal 6.&lt;br /&gt;
+Example: &lt;code&gt;stringdist(&#34;Patrick Mahomes&#34;, &#34;Pat Mahomes&#34;)&lt;/code&gt; would be 4, so it would still match our superstar quaterback. Difference of 6 seems like a lot, but we can’t match everyone with a smaller value and our overlap is minimal as well.&lt;/p&gt;
+&lt;p&gt;We will also calculate the difference in the rankings. Negative Value means the player goes too early on sleeper, positive means that we might be able to snatch him a bit later. We label the players accordingly in a new column &lt;code&gt;category&lt;/code&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;comparing-data&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Comparing Data&lt;/h3&gt;
+&lt;p&gt;After joining the data, we can analyze it. Nobody cares about &lt;em&gt;sleepers&lt;/em&gt; that go after round 13 so we will only look at Top100 players (in either ranking)&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;LIMIT &amp;lt;- 100
+
+adp_compare &amp;lt;- adp_tibble %&amp;gt;% 
+  arrange(desc(abs(diff))) %&amp;gt;% 
+  filter(fp &amp;lt;= LIMIT | sleeper &amp;lt;= LIMIT)
+
+steals &amp;lt;- adp_compare %&amp;gt;% 
+  filter(category == &amp;quot;Steal&amp;quot;) %&amp;gt;% 
+  select(-category)
+
+overhyped &amp;lt;- adp_compare %&amp;gt;% 
+  filter(category == &amp;quot;Overhyped&amp;quot;) %&amp;gt;% 
+  select(-category)
+
+steals&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## # A tibble: 51 x 6
+##    name              pos   team     fp sleeper  diff
+##    &amp;lt;chr&amp;gt;             &amp;lt;chr&amp;gt; &amp;lt;chr&amp;gt; &amp;lt;dbl&amp;gt;   &amp;lt;dbl&amp;gt; &amp;lt;dbl&amp;gt;
+##  1 Tarik Cohen       RB    CHI      88     120    32
+##  2 Tyler Higbee      TE    LAR      77     106    29
+##  3 Austin Hooper     TE    CLE      99     124    25
+##  4 Josh Allen        QB    BUF      70      89    19
+##  5 Matthew Stafford  QB    DET      90     109    19
+##  6 D.J. Moore        WR    CAR      30      47    17
+##  7 Odell Beckham Jr. WR    CLE      31      48    17
+##  8 Courtland Sutton  WR    DEN      50      67    17
+##  9 Allen Robinson    WR    CHI      24      40    16
+## 10 DeVante Parker    WR    MIA      55      71    16
+## # ... with 41 more rows&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;overhyped&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## # A tibble: 54 x 6
+##    name               pos   team     fp sleeper  diff
+##    &amp;lt;chr&amp;gt;              &amp;lt;chr&amp;gt; &amp;lt;chr&amp;gt; &amp;lt;dbl&amp;gt;   &amp;lt;dbl&amp;gt; &amp;lt;dbl&amp;gt;
+##  1 Deebo Samuel       WR    SF      123      75   -48
+##  2 Mecole Hardman     WR    KC      147     100   -47
+##  3 Rob Gronkowski     TE    TB      107      72   -35
+##  4 Emmanuel Sanders   WR    NO      127      99   -28
+##  5 Marlon Mack        RB    IND      91      69   -22
+##  6 Alexander Mattison RB    MIN     113      96   -17
+##  7 Aaron Rodgers      QB    GB       98      82   -16
+##  8 Sony Michel        RB    NE      109      93   -16
+##  9 David Montgomery   RB    CHI      52      37   -15
+## 10 Devin Singletary   RB    BUF      57      42   -15
+## # ... with 44 more rows&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;creating-tables&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Creating Tables&lt;/h3&gt;
+&lt;p&gt;We now have two datasets &lt;code&gt;steals&lt;/code&gt; and &lt;code&gt;overhyped&lt;/code&gt; that contain the data we were interested in. However, it is not pleasant to look at the players in this format. Therefore we will create beatiful tables using the &lt;em&gt;gt&lt;/em&gt; package.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(gt)
+#Table Options Shared
+table_init_with_options &amp;lt;- . %&amp;gt;% 
+  gt(groupname_col = &amp;quot;pos&amp;quot;, rownames_to_stub = T) %&amp;gt;% 
+  tab_options(
+    row_group.background.color = &amp;quot;#FFEFDB80&amp;quot;,#EFFBFC
+    heading.background.color = &amp;quot;#ebebeb&amp;quot;,
+    column_labels.background.color = &amp;quot;#ebebeb&amp;quot;,
+    stub.background.color = &amp;quot;#ebebeb&amp;quot;,
+    table.font.color = &amp;quot;#323232&amp;quot;,
+    table_body.hlines.color = &amp;quot;#989898&amp;quot;,
+    table_body.border.top.color = &amp;quot;#989898&amp;quot;,
+    heading.border.bottom.color = &amp;quot;#989898&amp;quot;,
+    row_group.border.top.color = &amp;quot;#989898&amp;quot;,
+    row_group.border.bottom.style = &amp;quot;none&amp;quot;,
+    stub.border.style = &amp;quot;dashed&amp;quot;,
+    stub.border.color = &amp;quot;#989898&amp;quot;,
+    stub.border.width = &amp;quot;1px&amp;quot;,
+    table.width = &amp;quot;60%&amp;quot;
+  ) %&amp;gt;% 
+  opt_all_caps() %&amp;gt;% 
+  cols_align(align = &amp;quot;center&amp;quot;, columns = c(1,3:7))
+
+MINIMUM_DIFFERENCE &amp;lt;- 8&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;These are some options that we want to have for both our tables so we create a function for it. We also set the minimum difference to 8, so the table isn’t to crowded.&lt;/p&gt;
+&lt;p&gt;Over Table with Player we &lt;strong&gt;don’t&lt;/strong&gt; want to draft looks like this:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;overhyped %&amp;gt;% 
+  filter(diff &amp;lt;= -MINIMUM_DIFFERENCE) %&amp;gt;% 
+  table_init_with_options() %&amp;gt;% 
+  tab_header(
+    title = md(&amp;quot;Overhyped Players on *Sleeper.App*&amp;quot;),
+    subtitle = &amp;quot;(Players that tend to go before their general ADP)&amp;quot;
+  ) %&amp;gt;% 
+  data_color(
+    columns = vars(diff),
+    colors = scales::col_numeric(
+      palette = paletteer::paletteer_d(
+        palette = &amp;quot;ggsci::red_material&amp;quot;
+      ) %&amp;gt;% as.character(),
+      domain = NULL,
+      reverse = T
+    ),
+    alpha = 0.8
+  )&lt;/code&gt;&lt;/pre&gt;
+&lt;style&gt;html {
+  font-family: -apple-system, BlinkMacSystemFont, &#39;Segoe UI&#39;, Roboto, Oxygen, Ubuntu, Cantarell, &#39;Helvetica Neue&#39;, &#39;Fira Sans&#39;, &#39;Droid Sans&#39;, Arial, sans-serif;
+}
+
+#sgruksazbm .gt_table {
+  display: table;
+  border-collapse: collapse;
+  margin-left: auto;
+  margin-right: auto;
+  color: #323232;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: 60%;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#sgruksazbm .gt_heading {
+  background-color: #ebebeb;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#sgruksazbm .gt_title {
+  color: #323232;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#sgruksazbm .gt_subtitle {
+  color: #323232;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 0;
+  padding-bottom: 4px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#sgruksazbm .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #989898;
+}
+
+#sgruksazbm .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#sgruksazbm .gt_col_heading {
+  color: #323232;
+  background-color: #ebebeb;
+  font-size: 80%;
+  font-weight: bolder;
+  text-transform: uppercase;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#sgruksazbm .gt_column_spanner_outer {
+  color: #323232;
+  background-color: #ebebeb;
+  font-size: 80%;
+  font-weight: bolder;
+  text-transform: uppercase;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#sgruksazbm .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#sgruksazbm .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#sgruksazbm .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#sgruksazbm .gt_group_heading {
+  padding: 8px;
+  color: #323232;
+  background-color: #FFEFDB80;
+  font-size: 80%;
+  font-weight: bolder;
+  text-transform: uppercase;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #989898;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#sgruksazbm .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #323232;
+  background-color: #FFEFDB80;
+  font-size: 80%;
+  font-weight: bolder;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #989898;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#sgruksazbm .gt_from_md &gt; :first-child {
+  margin-top: 0;
+}
+
+#sgruksazbm .gt_from_md &gt; :last-child {
+  margin-bottom: 0;
+}
+
+#sgruksazbm .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #989898;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#sgruksazbm .gt_stub {
+  color: #323232;
+  background-color: #ebebeb;
+  font-size: 80%;
+  font-weight: bolder;
+  text-transform: uppercase;
+  border-right-style: dashed;
+  border-right-width: 1px;
+  border-right-color: #989898;
+  padding-left: 12px;
+}
+
+#sgruksazbm .gt_summary_row {
+  color: #323232;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#sgruksazbm .gt_first_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+}
+
+#sgruksazbm .gt_grand_summary_row {
+  color: #323232;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#sgruksazbm .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#sgruksazbm .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#sgruksazbm .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #989898;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#sgruksazbm .gt_footnotes {
+  color: #323232;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#sgruksazbm .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding: 4px;
+}
+
+#sgruksazbm .gt_sourcenotes {
+  color: #323232;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#sgruksazbm .gt_sourcenote {
+  font-size: 90%;
+  padding: 4px;
+}
+
+#sgruksazbm .gt_left {
+  text-align: left;
+}
+
+#sgruksazbm .gt_center {
+  text-align: center;
+}
+
+#sgruksazbm .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#sgruksazbm .gt_font_normal {
+  font-weight: normal;
+}
+
+#sgruksazbm .gt_font_bold {
+  font-weight: bold;
+}
+
+#sgruksazbm .gt_font_italic {
+  font-style: italic;
+}
+
+#sgruksazbm .gt_super {
+  font-size: 65%;
+}
+
+#sgruksazbm .gt_footnote_marks {
+  font-style: italic;
+  font-size: 65%;
+}
+&lt;/style&gt;
+&lt;div id=&#34;sgruksazbm&#34; style=&#34;overflow-x:auto;overflow-y:auto;width:auto;height:auto;&#34;&gt;&lt;table class=&#34;gt_table&#34;&gt;
+  &lt;thead class=&#34;gt_header&#34;&gt;
+    &lt;tr&gt;
+      &lt;th colspan=&#34;6&#34; class=&#34;gt_heading gt_title gt_font_normal&#34; style&gt;Overhyped Players on &lt;em&gt;Sleeper.App&lt;/em&gt;&lt;/th&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;th colspan=&#34;6&#34; class=&#34;gt_heading gt_subtitle gt_font_normal gt_bottom_border&#34; style&gt;(Players that tend to go before their general ADP)&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;thead class=&#34;gt_col_headings&#34;&gt;
+    &lt;tr&gt;
+      &lt;th class=&#34;gt_col_heading gt_columns_bottom_border gt_left&#34; rowspan=&#34;1&#34; colspan=&#34;1&#34;&gt;&lt;/th&gt;
+      &lt;th class=&#34;gt_col_heading gt_columns_bottom_border gt_left&#34; rowspan=&#34;1&#34; colspan=&#34;1&#34;&gt;name&lt;/th&gt;
+      &lt;th class=&#34;gt_col_heading gt_columns_bottom_border gt_center&#34; rowspan=&#34;1&#34; colspan=&#34;1&#34;&gt;team&lt;/th&gt;
+      &lt;th class=&#34;gt_col_heading gt_columns_bottom_border gt_center&#34; rowspan=&#34;1&#34; colspan=&#34;1&#34;&gt;fp&lt;/th&gt;
+      &lt;th class=&#34;gt_col_heading gt_columns_bottom_border gt_center&#34; rowspan=&#34;1&#34; colspan=&#34;1&#34;&gt;sleeper&lt;/th&gt;
+      &lt;th class=&#34;gt_col_heading gt_columns_bottom_border gt_center&#34; rowspan=&#34;1&#34; colspan=&#34;1&#34;&gt;diff&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody class=&#34;gt_table_body&#34;&gt;
+    &lt;tr class=&#34;gt_group_heading_row&#34;&gt;
+      &lt;td colspan=&#34;6&#34; class=&#34;gt_group_heading&#34;&gt;WR&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_left gt_stub&#34;&gt;1&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_left&#34;&gt;Deebo Samuel&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;SF&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;123&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;75&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34; style=&#34;background-color: rgba(183,28,28,0.8); color: #FFFFFF;&#34;&gt;-48&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_left gt_stub&#34;&gt;2&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_left&#34;&gt;Mecole Hardman&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;KC&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;147&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;100&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34; style=&#34;background-color: rgba(186,31,31,0.8); color: #FFFFFF;&#34;&gt;-47&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_left gt_stub&#34;&gt;4&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_left&#34;&gt;Emmanuel Sanders&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;NO&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;127&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;99&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34; style=&#34;background-color: rgba(242,75,67,0.8); color: #FFFFFF;&#34;&gt;-28&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_left gt_stub&#34;&gt;12&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_left&#34;&gt;Brandin Cooks&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;HOU&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;87&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;73&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34; style=&#34;background-color: rgba(250,187,190,0.8); color: #000000;&#34;&gt;-14&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_left gt_stub&#34;&gt;17&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_left&#34;&gt;T.Y. Hilton&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;IND&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;63&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;52&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34; style=&#34;background-color: rgba(255,215,219,0.8); color: #000000;&#34;&gt;-11&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_left gt_stub&#34;&gt;20&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_left&#34;&gt;D.K. Metcalf&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;SEA&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;53&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;44&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34; style=&#34;background-color: rgba(255,228,232,0.8); color: #000000;&#34;&gt;-9&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_left gt_stub&#34;&gt;21&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_left&#34;&gt;Marquise Brown&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;BAL&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;73&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;64&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34; style=&#34;background-color: rgba(255,228,232,0.8); color: #000000;&#34;&gt;-9&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr class=&#34;gt_group_heading_row&#34;&gt;
+      &lt;td colspan=&#34;6&#34; class=&#34;gt_group_heading&#34;&gt;TE&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_left gt_stub&#34;&gt;3&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_left&#34;&gt;Rob Gronkowski&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;TB&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;107&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;72&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34; style=&#34;background-color: rgba(228,56,53,0.8); color: #FFFFFF;&#34;&gt;-35&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr class=&#34;gt_group_heading_row&#34;&gt;
+      &lt;td colspan=&#34;6&#34; class=&#34;gt_group_heading&#34;&gt;RB&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_left gt_stub&#34;&gt;5&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_left&#34;&gt;Marlon Mack&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;IND&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;91&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;69&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34; style=&#34;background-color: rgba(231,111,110,0.8); color: #000000;&#34;&gt;-22&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_left gt_stub&#34;&gt;6&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_left&#34;&gt;Alexander Mattison&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;MIN&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;113&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;96&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34; style=&#34;background-color: rgba(239,153,153,0.8); color: #000000;&#34;&gt;-17&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_left gt_stub&#34;&gt;8&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_left&#34;&gt;Sony Michel&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;NE&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;109&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;93&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34; style=&#34;background-color: rgba(243,164,165,0.8); color: #000000;&#34;&gt;-16&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_left gt_stub&#34;&gt;9&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_left&#34;&gt;David Montgomery&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;CHI&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;52&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;37&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34; style=&#34;background-color: rgba(246,176,177,0.8); color: #000000;&#34;&gt;-15&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_left gt_stub&#34;&gt;10&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_left&#34;&gt;Devin Singletary&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;BUF&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;57&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;42&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34; style=&#34;background-color: rgba(246,176,177,0.8); color: #000000;&#34;&gt;-15&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_left gt_stub&#34;&gt;11&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_left&#34;&gt;James Conner&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;PIT&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;39&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;25&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34; style=&#34;background-color: rgba(250,187,190,0.8); color: #000000;&#34;&gt;-14&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_left gt_stub&#34;&gt;13&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_left&#34;&gt;Le&#39;Veon Bell&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;NYJ&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;42&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;29&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34; style=&#34;background-color: rgba(253,199,203,0.8); color: #000000;&#34;&gt;-13&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_left gt_stub&#34;&gt;14&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_left&#34;&gt;J.K. Dobbins&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;BAL&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;89&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;76&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34; style=&#34;background-color: rgba(253,199,203,0.8); color: #000000;&#34;&gt;-13&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_left gt_stub&#34;&gt;16&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_left&#34;&gt;David Johnson&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;HOU&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;44&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;33&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34; style=&#34;background-color: rgba(255,215,219,0.8); color: #000000;&#34;&gt;-11&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_left gt_stub&#34;&gt;18&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_left&#34;&gt;Melvin Gordon&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;DEN&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;41&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;31&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34; style=&#34;background-color: rgba(255,222,225,0.8); color: #000000;&#34;&gt;-10&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_left gt_stub&#34;&gt;19&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_left&#34;&gt;Mark Ingram II&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;BAL&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;48&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;39&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34; style=&#34;background-color: rgba(255,228,232,0.8); color: #000000;&#34;&gt;-9&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_left gt_stub&#34;&gt;22&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_left&#34;&gt;Jonathan Taylor&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;IND&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;54&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;46&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34; style=&#34;background-color: rgba(255,235,238,0.8); color: #000000;&#34;&gt;-8&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr class=&#34;gt_group_heading_row&#34;&gt;
+      &lt;td colspan=&#34;6&#34; class=&#34;gt_group_heading&#34;&gt;QB&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_left gt_stub&#34;&gt;7&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_left&#34;&gt;Aaron Rodgers&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;GB&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;98&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;82&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34; style=&#34;background-color: rgba(243,164,165,0.8); color: #000000;&#34;&gt;-16&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_left gt_stub&#34;&gt;15&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_left&#34;&gt;Patrick Mahomes&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;KC&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;25&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;14&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34; style=&#34;background-color: rgba(255,215,219,0.8); color: #000000;&#34;&gt;-11&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+  
+  
+&lt;/table&gt;&lt;/div&gt;
+&lt;p&gt;Here’s our table for potential steals:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;steals %&amp;gt;% 
+  filter(diff &amp;gt;= MINIMUM_DIFFERENCE) %&amp;gt;%
+  table_init_with_options() %&amp;gt;% 
+  tab_header(
+    title = md(&amp;quot;Potential Steals on *Sleeper.App*&amp;quot;),
+    subtitle = &amp;quot;(Players that tend to go after their general ADP)&amp;quot;
+  ) %&amp;gt;% 
+  data_color(
+    columns = vars(diff),
+    colors = scales::col_numeric(
+      palette = paletteer::paletteer_d(
+        palette = &amp;quot;ggsci::green_material&amp;quot;
+      ) %&amp;gt;% as.character(),
+      domain = NULL
+    ),
+    alpha = 0.8
+  )&lt;/code&gt;&lt;/pre&gt;
+&lt;style&gt;html {
+  font-family: -apple-system, BlinkMacSystemFont, &#39;Segoe UI&#39;, Roboto, Oxygen, Ubuntu, Cantarell, &#39;Helvetica Neue&#39;, &#39;Fira Sans&#39;, &#39;Droid Sans&#39;, Arial, sans-serif;
+}
+
+#hhgzdoptpa .gt_table {
+  display: table;
+  border-collapse: collapse;
+  margin-left: auto;
+  margin-right: auto;
+  color: #323232;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: 60%;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#hhgzdoptpa .gt_heading {
+  background-color: #ebebeb;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#hhgzdoptpa .gt_title {
+  color: #323232;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#hhgzdoptpa .gt_subtitle {
+  color: #323232;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 0;
+  padding-bottom: 4px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#hhgzdoptpa .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #989898;
+}
+
+#hhgzdoptpa .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#hhgzdoptpa .gt_col_heading {
+  color: #323232;
+  background-color: #ebebeb;
+  font-size: 80%;
+  font-weight: bolder;
+  text-transform: uppercase;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#hhgzdoptpa .gt_column_spanner_outer {
+  color: #323232;
+  background-color: #ebebeb;
+  font-size: 80%;
+  font-weight: bolder;
+  text-transform: uppercase;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#hhgzdoptpa .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#hhgzdoptpa .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#hhgzdoptpa .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#hhgzdoptpa .gt_group_heading {
+  padding: 8px;
+  color: #323232;
+  background-color: #FFEFDB80;
+  font-size: 80%;
+  font-weight: bolder;
+  text-transform: uppercase;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #989898;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#hhgzdoptpa .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #323232;
+  background-color: #FFEFDB80;
+  font-size: 80%;
+  font-weight: bolder;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #989898;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#hhgzdoptpa .gt_from_md &gt; :first-child {
+  margin-top: 0;
+}
+
+#hhgzdoptpa .gt_from_md &gt; :last-child {
+  margin-bottom: 0;
+}
+
+#hhgzdoptpa .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #989898;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#hhgzdoptpa .gt_stub {
+  color: #323232;
+  background-color: #ebebeb;
+  font-size: 80%;
+  font-weight: bolder;
+  text-transform: uppercase;
+  border-right-style: dashed;
+  border-right-width: 1px;
+  border-right-color: #989898;
+  padding-left: 12px;
+}
+
+#hhgzdoptpa .gt_summary_row {
+  color: #323232;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#hhgzdoptpa .gt_first_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+}
+
+#hhgzdoptpa .gt_grand_summary_row {
+  color: #323232;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#hhgzdoptpa .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#hhgzdoptpa .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#hhgzdoptpa .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #989898;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#hhgzdoptpa .gt_footnotes {
+  color: #323232;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#hhgzdoptpa .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding: 4px;
+}
+
+#hhgzdoptpa .gt_sourcenotes {
+  color: #323232;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#hhgzdoptpa .gt_sourcenote {
+  font-size: 90%;
+  padding: 4px;
+}
+
+#hhgzdoptpa .gt_left {
+  text-align: left;
+}
+
+#hhgzdoptpa .gt_center {
+  text-align: center;
+}
+
+#hhgzdoptpa .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#hhgzdoptpa .gt_font_normal {
+  font-weight: normal;
+}
+
+#hhgzdoptpa .gt_font_bold {
+  font-weight: bold;
+}
+
+#hhgzdoptpa .gt_font_italic {
+  font-style: italic;
+}
+
+#hhgzdoptpa .gt_super {
+  font-size: 65%;
+}
+
+#hhgzdoptpa .gt_footnote_marks {
+  font-style: italic;
+  font-size: 65%;
+}
+&lt;/style&gt;
+&lt;div id=&#34;hhgzdoptpa&#34; style=&#34;overflow-x:auto;overflow-y:auto;width:auto;height:auto;&#34;&gt;&lt;table class=&#34;gt_table&#34;&gt;
+  &lt;thead class=&#34;gt_header&#34;&gt;
+    &lt;tr&gt;
+      &lt;th colspan=&#34;6&#34; class=&#34;gt_heading gt_title gt_font_normal&#34; style&gt;Potential Steals on &lt;em&gt;Sleeper.App&lt;/em&gt;&lt;/th&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;th colspan=&#34;6&#34; class=&#34;gt_heading gt_subtitle gt_font_normal gt_bottom_border&#34; style&gt;(Players that tend to go after their general ADP)&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;thead class=&#34;gt_col_headings&#34;&gt;
+    &lt;tr&gt;
+      &lt;th class=&#34;gt_col_heading gt_columns_bottom_border gt_left&#34; rowspan=&#34;1&#34; colspan=&#34;1&#34;&gt;&lt;/th&gt;
+      &lt;th class=&#34;gt_col_heading gt_columns_bottom_border gt_left&#34; rowspan=&#34;1&#34; colspan=&#34;1&#34;&gt;name&lt;/th&gt;
+      &lt;th class=&#34;gt_col_heading gt_columns_bottom_border gt_center&#34; rowspan=&#34;1&#34; colspan=&#34;1&#34;&gt;team&lt;/th&gt;
+      &lt;th class=&#34;gt_col_heading gt_columns_bottom_border gt_center&#34; rowspan=&#34;1&#34; colspan=&#34;1&#34;&gt;fp&lt;/th&gt;
+      &lt;th class=&#34;gt_col_heading gt_columns_bottom_border gt_center&#34; rowspan=&#34;1&#34; colspan=&#34;1&#34;&gt;sleeper&lt;/th&gt;
+      &lt;th class=&#34;gt_col_heading gt_columns_bottom_border gt_center&#34; rowspan=&#34;1&#34; colspan=&#34;1&#34;&gt;diff&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody class=&#34;gt_table_body&#34;&gt;
+    &lt;tr class=&#34;gt_group_heading_row&#34;&gt;
+      &lt;td colspan=&#34;6&#34; class=&#34;gt_group_heading&#34;&gt;RB&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_left gt_stub&#34;&gt;1&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_left&#34;&gt;Tarik Cohen&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;CHI&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;88&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;120&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34; style=&#34;background-color: rgba(27,94,32,0.8); color: #FFFFFF;&#34;&gt;32&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_left gt_stub&#34;&gt;18&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_left&#34;&gt;James White&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;NE&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;80&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;90&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34; style=&#34;background-color: rgba(208,234,209,0.8); color: #000000;&#34;&gt;10&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr class=&#34;gt_group_heading_row&#34;&gt;
+      &lt;td colspan=&#34;6&#34; class=&#34;gt_group_heading&#34;&gt;TE&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_left gt_stub&#34;&gt;2&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_left&#34;&gt;Tyler Higbee&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;LAR&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;77&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;106&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34; style=&#34;background-color: rgba(47,127,51,0.8); color: #FFFFFF;&#34;&gt;29&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_left gt_stub&#34;&gt;3&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_left&#34;&gt;Austin Hooper&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;CLE&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;99&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;124&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34; style=&#34;background-color: rgba(63,153,67,0.8); color: #FFFFFF;&#34;&gt;25&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_left gt_stub&#34;&gt;19&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_left&#34;&gt;Hayden Hurst&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;ATL&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;97&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;107&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34; style=&#34;background-color: rgba(208,234,209,0.8); color: #000000;&#34;&gt;10&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_left gt_stub&#34;&gt;20&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_left&#34;&gt;Hunter Henry&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;LAC&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;78&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;87&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34; style=&#34;background-color: rgba(220,239,221,0.8); color: #000000;&#34;&gt;9&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr class=&#34;gt_group_heading_row&#34;&gt;
+      &lt;td colspan=&#34;6&#34; class=&#34;gt_group_heading&#34;&gt;QB&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_left gt_stub&#34;&gt;4&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_left&#34;&gt;Josh Allen&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;BUF&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;70&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;89&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34; style=&#34;background-color: rgba(99,186,103,0.8); color: #000000;&#34;&gt;19&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_left gt_stub&#34;&gt;5&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_left&#34;&gt;Matthew Stafford&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;DET&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;90&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;109&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34; style=&#34;background-color: rgba(99,186,103,0.8); color: #000000;&#34;&gt;19&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_left gt_stub&#34;&gt;12&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_left&#34;&gt;Carson Wentz&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;PHI&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;83&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;98&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34; style=&#34;background-color: rgba(143,205,145,0.8); color: #000000;&#34;&gt;15&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_left gt_stub&#34;&gt;22&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_left&#34;&gt;Matt Ryan&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;ATL&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;75&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;83&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34; style=&#34;background-color: rgba(232,245,233,0.8); color: #000000;&#34;&gt;8&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr class=&#34;gt_group_heading_row&#34;&gt;
+      &lt;td colspan=&#34;6&#34; class=&#34;gt_group_heading&#34;&gt;WR&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_left gt_stub&#34;&gt;6&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_left&#34;&gt;D.J. Moore&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;CAR&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;30&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;47&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34; style=&#34;background-color: rgba(119,195,122,0.8); color: #000000;&#34;&gt;17&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_left gt_stub&#34;&gt;7&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_left&#34;&gt;Odell Beckham Jr.&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;CLE&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;31&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;48&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34; style=&#34;background-color: rgba(119,195,122,0.8); color: #000000;&#34;&gt;17&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_left gt_stub&#34;&gt;8&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_left&#34;&gt;Courtland Sutton&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;DEN&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;50&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;67&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34; style=&#34;background-color: rgba(119,195,122,0.8); color: #000000;&#34;&gt;17&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_left gt_stub&#34;&gt;9&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_left&#34;&gt;Allen Robinson&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;CHI&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;24&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;40&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34; style=&#34;background-color: rgba(129,199,132,0.8); color: #000000;&#34;&gt;16&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_left gt_stub&#34;&gt;10&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_left&#34;&gt;DeVante Parker&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;MIA&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;55&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;71&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34; style=&#34;background-color: rgba(129,199,132,0.8); color: #000000;&#34;&gt;16&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_left gt_stub&#34;&gt;11&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_left&#34;&gt;JuJu Smith-Schuster&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;PIT&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;28&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;43&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34; style=&#34;background-color: rgba(143,205,145,0.8); color: #000000;&#34;&gt;15&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_left gt_stub&#34;&gt;13&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_left&#34;&gt;Jarvis Landry&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;CLE&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;67&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;81&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34; style=&#34;background-color: rgba(156,210,158,0.8); color: #000000;&#34;&gt;14&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_left gt_stub&#34;&gt;14&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_left&#34;&gt;Robert Woods&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;LAR&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;36&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;49&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34; style=&#34;background-color: rgba(169,216,171,0.8); color: #000000;&#34;&gt;13&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_left gt_stub&#34;&gt;15&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_left&#34;&gt;Tyler Boyd&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;CIN&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;72&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;85&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34; style=&#34;background-color: rgba(169,216,171,0.8); color: #000000;&#34;&gt;13&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_left gt_stub&#34;&gt;16&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_left&#34;&gt;Marvin Jones&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;DET&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;81&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;94&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34; style=&#34;background-color: rgba(169,216,171,0.8); color: #000000;&#34;&gt;13&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_left gt_stub&#34;&gt;17&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_left&#34;&gt;Terry McLaurin&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;WAS&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;49&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;59&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34; style=&#34;background-color: rgba(208,234,209,0.8); color: #000000;&#34;&gt;10&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_left gt_stub&#34;&gt;21&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_left&#34;&gt;D.J. Chark&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;JAX&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;47&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;55&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_center&#34; style=&#34;background-color: rgba(232,245,233,0.8); color: #000000;&#34;&gt;8&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+  
+  
+&lt;/table&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&#34;conclusion&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Conclusion&lt;/h3&gt;
+&lt;p&gt;These tables might help, when drafting on Sleeper this year. You should, however, &lt;strong&gt;never&lt;/strong&gt; base your whole draft around this. If you like a player and find him on the &lt;em&gt;Steals&lt;/em&gt;-Table, great! You might even get him a round later than usual. If you like a player, but he is on the &lt;em&gt;Overhyped&lt;/em&gt;-Table, you have to decide, if you really want him, because you might have to pay a hefty price.&lt;/p&gt;
+&lt;p&gt;Standalone Overhyped Table can be found &lt;a href=&#34;https://maxhuebner.github.io/post/data/hyped.html&#34;&gt;here&lt;/a&gt;
+Standalone Steal table can be found &lt;a href=&#34;https://maxhuebner.github.io/post/data/steals.html&#34;&gt;here&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Scraping Rankings from Sleeper with Selenium</title>
       <link>/post/scraping-rankings-from-sleeper-with-selenium/</link>
       <pubDate>Tue, 18 Aug 2020 00:00:00 +0000</pubDate>
