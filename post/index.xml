@@ -55,11 +55,13 @@ fp_html&lt;/code&gt;&lt;/pre&gt;
 ##  9 Tier~ &amp;quot;&amp;quot;    &amp;quot;&amp;quot;           &amp;quot;&amp;quot;    &amp;quot;&amp;quot;    &amp;quot;&amp;quot;    &amp;quot;&amp;quot;    &amp;quot;&amp;quot;    &amp;quot;&amp;quot;      &amp;quot;&amp;quot;    &amp;quot;&amp;quot;    
 ## 10 7     &amp;quot;&amp;quot;    &amp;quot;Derrick He~ &amp;quot;RB6&amp;quot; &amp;quot;7&amp;quot;   &amp;quot;2&amp;quot;   &amp;quot;28&amp;quot;  &amp;quot;8.3&amp;quot; &amp;quot;3.2&amp;quot;   &amp;quot;6.0&amp;quot; &amp;quot;-1.0&amp;quot;
 ## # ... with 500 more rows, and 1 more variable: notes &amp;lt;lgl&amp;gt;&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;Unfortunately the data/table is not perfect, so we need to do a bit of data cleaning:&lt;br /&gt;
-- Get rid of rows with non numeric rows (&lt;code&gt;as.numeric(rank)&lt;/code&gt; will make non numeric values &lt;code&gt;NA&lt;/code&gt;)
-- Extract name by matching everything up to the &lt;code&gt;.&lt;/code&gt; and trimming the last 2 characters
-- Extract position by removing the number
-- Extract the team by extracting at least two back to back capital letters (only team names matches this description)&lt;/p&gt;
+&lt;p&gt;Unfortunately the data/table is not perfect, so we need to do a bit of data cleaning:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Get rid of rows with non numeric rows (&lt;code&gt;as.numeric(rank)&lt;/code&gt; will make non numeric values &lt;code&gt;NA&lt;/code&gt;)&lt;/li&gt;
+&lt;li&gt;Extract name by matching everything up to the &lt;code&gt;.&lt;/code&gt; and trimming the last 2 characters&lt;/li&gt;
+&lt;li&gt;Extract position by removing the number&lt;/li&gt;
+&lt;li&gt;Extract the team by extracting at least two back to back capital letters (only team names matches this description)&lt;/li&gt;
+&lt;/ul&gt;
 &lt;p&gt;After that, we change a few outliers so that our data is acceptable.&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;fp_ranks &amp;lt;- fp_html %&amp;gt;% 
   mutate(rank = as.numeric(rank),
@@ -1345,7 +1347,7 @@ MINIMUM_DIFFERENCE &amp;lt;- 8&lt;/code&gt;&lt;/pre&gt;
 &lt;div id=&#34;conclusion&#34; class=&#34;section level3&#34;&gt;
 &lt;h3&gt;Conclusion&lt;/h3&gt;
 &lt;p&gt;These tables might help, when drafting on Sleeper this year. You should, however, &lt;strong&gt;never&lt;/strong&gt; base your whole draft around this. If you like a player and find him on the &lt;em&gt;Steals&lt;/em&gt;-Table, great! You might even get him a round later than usual. If you like a player, but he is on the &lt;em&gt;Overhyped&lt;/em&gt;-Table, you have to decide, if you really want him, because you might have to pay a hefty price.&lt;/p&gt;
-&lt;p&gt;Standalone Overhyped Table can be found &lt;a href=&#34;https://maxhuebner.github.io/post/data/hyped.html&#34;&gt;here&lt;/a&gt;
+&lt;p&gt;Standalone Overhyped Table can be found &lt;a href=&#34;https://maxhuebner.github.io/post/data/hyped.html&#34;&gt;here&lt;/a&gt;&lt;br /&gt;
 Standalone Steal table can be found &lt;a href=&#34;https://maxhuebner.github.io/post/data/steals.html&#34;&gt;here&lt;/a&gt;&lt;/p&gt;
 &lt;/div&gt;
 </description>

@@ -571,11 +571,13 @@ fp_html</code></pre>
 ##  9 Tier~ &quot;&quot;    &quot;&quot;           &quot;&quot;    &quot;&quot;    &quot;&quot;    &quot;&quot;    &quot;&quot;    &quot;&quot;      &quot;&quot;    &quot;&quot;    
 ## 10 7     &quot;&quot;    &quot;Derrick He~ &quot;RB6&quot; &quot;7&quot;   &quot;2&quot;   &quot;28&quot;  &quot;8.3&quot; &quot;3.2&quot;   &quot;6.0&quot; &quot;-1.0&quot;
 ## # ... with 500 more rows, and 1 more variable: notes &lt;lgl&gt;</code></pre>
-<p>Unfortunately the data/table is not perfect, so we need to do a bit of data cleaning:<br />
-- Get rid of rows with non numeric rows (<code>as.numeric(rank)</code> will make non numeric values <code>NA</code>)
-- Extract name by matching everything up to the <code>.</code> and trimming the last 2 characters
-- Extract position by removing the number
-- Extract the team by extracting at least two back to back capital letters (only team names matches this description)</p>
+<p>Unfortunately the data/table is not perfect, so we need to do a bit of data cleaning:</p>
+<ul>
+<li>Get rid of rows with non numeric rows (<code>as.numeric(rank)</code> will make non numeric values <code>NA</code>)</li>
+<li>Extract name by matching everything up to the <code>.</code> and trimming the last 2 characters</li>
+<li>Extract position by removing the number</li>
+<li>Extract the team by extracting at least two back to back capital letters (only team names matches this description)</li>
+</ul>
 <p>After that, we change a few outliers so that our data is acceptable.</p>
 <pre class="r"><code>fp_ranks &lt;- fp_html %&gt;% 
   mutate(rank = as.numeric(rank),
@@ -1861,7 +1863,7 @@ MINIMUM_DIFFERENCE &lt;- 8</code></pre>
 <div id="conclusion" class="section level3">
 <h3>Conclusion</h3>
 <p>These tables might help, when drafting on Sleeper this year. You should, however, <strong>never</strong> base your whole draft around this. If you like a player and find him on the <em>Steals</em>-Table, great! You might even get him a round later than usual. If you like a player, but he is on the <em>Overhyped</em>-Table, you have to decide, if you really want him, because you might have to pay a hefty price.</p>
-<p>Standalone Overhyped Table can be found <a href="https://maxhuebner.github.io/post/data/hyped.html">here</a>
+<p>Standalone Overhyped Table can be found <a href="https://maxhuebner.github.io/post/data/hyped.html">here</a><br />
 Standalone Steal table can be found <a href="https://maxhuebner.github.io/post/data/steals.html">here</a></p>
 </div>
 
