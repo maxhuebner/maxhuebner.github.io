@@ -5,7 +5,7 @@
     <link>/category/rstats/</link>
       <atom:link href="/category/rstats/index.xml" rel="self" type="application/rss+xml" />
     <description>rstats</description>
-    <generator>Source Themes Academic (https://sourcethemes.com/academic/)</generator><language>en-us</language><copyright>© Max Hübner 2020</copyright><lastBuildDate>Mon, 04 May 2020 00:00:00 +0000</lastBuildDate>
+    <generator>Source Themes Academic (https://sourcethemes.com/academic/)</generator><language>en-us</language><copyright>© Max Hübner 2020</copyright><lastBuildDate>Tue, 18 Aug 2020 00:00:00 +0000</lastBuildDate>
     <image>
       <url>/images/icon_hubdc61f67c4acee99af4fb8a14828136d_14904_512x512_fill_lanczos_center_2.png</url>
       <title>rstats</title>
@@ -13,11 +13,407 @@
     </image>
     
     <item>
+      <title>Visualizing the Best Fantasy Football Performances of the 2019 Season</title>
+      <link>/post/visualizing-the-best-fantasy-football-performances-of-the-2019-season/</link>
+      <pubDate>Tue, 18 Aug 2020 00:00:00 +0000</pubDate>
+      <guid>/post/visualizing-the-best-fantasy-football-performances-of-the-2019-season/</guid>
+      <description>
+&lt;script src=&#34;/rmarkdown-libs/header-attrs/header-attrs.js&#34;&gt;&lt;/script&gt;
+&lt;script src=&#34;/rmarkdown-libs/htmlwidgets/htmlwidgets.js&#34;&gt;&lt;/script&gt;
+&lt;script src=&#34;/rmarkdown-libs/plotly-binding/plotly.js&#34;&gt;&lt;/script&gt;
+&lt;script src=&#34;/rmarkdown-libs/typedarray/typedarray.min.js&#34;&gt;&lt;/script&gt;
+&lt;script src=&#34;/rmarkdown-libs/jquery/jquery.min.js&#34;&gt;&lt;/script&gt;
+&lt;link href=&#34;/rmarkdown-libs/crosstalk/css/crosstalk.css&#34; rel=&#34;stylesheet&#34; /&gt;
+&lt;script src=&#34;/rmarkdown-libs/crosstalk/js/crosstalk.min.js&#34;&gt;&lt;/script&gt;
+&lt;link href=&#34;/rmarkdown-libs/plotly-htmlwidgets-css/plotly-htmlwidgets.css&#34; rel=&#34;stylesheet&#34; /&gt;
+&lt;script src=&#34;/rmarkdown-libs/plotly-main/plotly-latest.min.js&#34;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;With the Fantasy Football season only a few weeks away, I decided to look back at the 2019 season and the greatest weekly performances.&lt;br /&gt;
+In this post I will try to visualize the best weekly performances as well as the performance of the best players over the whole season.&lt;/p&gt;
+&lt;div id=&#34;setup&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Setup&lt;/h2&gt;
+&lt;p&gt;First, we need data. Since I didn’t have fantasy specific data I thought the easiest way to do this is to calculate the fantasy points from the Play-By-Play Data.&lt;br /&gt;
+You can find this and many more great datasets &lt;a href=&#34;https://github.com/guga31bb/nflfastR-data&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;pbp &amp;lt;- readRDS(url(&amp;quot;https://raw.githubusercontent.com/guga31bb/nflfastR-data/master/data/play_by_play_2019.rds&amp;quot;))
+
+pbp &amp;lt;- pbp %&amp;gt;%
+  filter(
+    season_type == &amp;quot;REG&amp;quot;,
+    between(week, 1, 16)
+  )
+pbp&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## # A tibble: 43,240 x 333
+##    play_id game_id old_game_id home_team away_team season_type  week posteam
+##      &amp;lt;dbl&amp;gt; &amp;lt;chr&amp;gt;   &amp;lt;chr&amp;gt;       &amp;lt;chr&amp;gt;     &amp;lt;chr&amp;gt;     &amp;lt;chr&amp;gt;       &amp;lt;int&amp;gt; &amp;lt;chr&amp;gt;  
+##  1       1 2019_0~ 2019090804  MIN       ATL       REG             1 &amp;lt;NA&amp;gt;   
+##  2      36 2019_0~ 2019090804  MIN       ATL       REG             1 ATL    
+##  3      51 2019_0~ 2019090804  MIN       ATL       REG             1 ATL    
+##  4      79 2019_0~ 2019090804  MIN       ATL       REG             1 ATL    
+##  5     100 2019_0~ 2019090804  MIN       ATL       REG             1 ATL    
+##  6     121 2019_0~ 2019090804  MIN       ATL       REG             1 ATL    
+##  7     148 2019_0~ 2019090804  MIN       ATL       REG             1 MIN    
+##  8     185 2019_0~ 2019090804  MIN       ATL       REG             1 MIN    
+##  9     214 2019_0~ 2019090804  MIN       ATL       REG             1 MIN    
+## 10     239 2019_0~ 2019090804  MIN       ATL       REG             1 MIN    
+## # ... with 43,230 more rows, and 325 more variables: posteam_type &amp;lt;chr&amp;gt;,
+## #   defteam &amp;lt;chr&amp;gt;, side_of_field &amp;lt;chr&amp;gt;, yardline_100 &amp;lt;dbl&amp;gt;, game_date &amp;lt;chr&amp;gt;,
+## #   quarter_seconds_remaining &amp;lt;dbl&amp;gt;, half_seconds_remaining &amp;lt;dbl&amp;gt;,
+## #   game_seconds_remaining &amp;lt;dbl&amp;gt;, game_half &amp;lt;chr&amp;gt;, quarter_end &amp;lt;dbl&amp;gt;,
+## #   drive &amp;lt;dbl&amp;gt;, sp &amp;lt;dbl&amp;gt;, qtr &amp;lt;dbl&amp;gt;, down &amp;lt;dbl&amp;gt;, goal_to_go &amp;lt;dbl&amp;gt;, time &amp;lt;chr&amp;gt;,
+## #   yrdln &amp;lt;chr&amp;gt;, ydstogo &amp;lt;dbl&amp;gt;, ydsnet &amp;lt;dbl&amp;gt;, desc &amp;lt;chr&amp;gt;, play_type &amp;lt;chr&amp;gt;,
+## #   yards_gained &amp;lt;dbl&amp;gt;, shotgun &amp;lt;dbl&amp;gt;, no_huddle &amp;lt;dbl&amp;gt;, qb_dropback &amp;lt;dbl&amp;gt;,
+## #   qb_kneel &amp;lt;dbl&amp;gt;, qb_spike &amp;lt;dbl&amp;gt;, qb_scramble &amp;lt;dbl&amp;gt;, pass_length &amp;lt;chr&amp;gt;,
+## #   pass_location &amp;lt;chr&amp;gt;, air_yards &amp;lt;dbl&amp;gt;, yards_after_catch &amp;lt;dbl&amp;gt;,
+## #   run_location &amp;lt;chr&amp;gt;, run_gap &amp;lt;chr&amp;gt;, field_goal_result &amp;lt;chr&amp;gt;,
+## #   kick_distance &amp;lt;dbl&amp;gt;, extra_point_result &amp;lt;chr&amp;gt;, two_point_conv_result &amp;lt;chr&amp;gt;,
+## #   home_timeouts_remaining &amp;lt;dbl&amp;gt;, away_timeouts_remaining &amp;lt;dbl&amp;gt;,
+## #   timeout &amp;lt;dbl&amp;gt;, timeout_team &amp;lt;chr&amp;gt;, td_team &amp;lt;chr&amp;gt;,
+## #   posteam_timeouts_remaining &amp;lt;dbl&amp;gt;, defteam_timeouts_remaining &amp;lt;dbl&amp;gt;,
+## #   total_home_score &amp;lt;dbl&amp;gt;, total_away_score &amp;lt;dbl&amp;gt;, posteam_score &amp;lt;dbl&amp;gt;,
+## #   defteam_score &amp;lt;dbl&amp;gt;, score_differential &amp;lt;dbl&amp;gt;, posteam_score_post &amp;lt;dbl&amp;gt;,
+## #   defteam_score_post &amp;lt;dbl&amp;gt;, score_differential_post &amp;lt;dbl&amp;gt;,
+## #   no_score_prob &amp;lt;dbl&amp;gt;, opp_fg_prob &amp;lt;dbl&amp;gt;, opp_safety_prob &amp;lt;dbl&amp;gt;,
+## #   opp_td_prob &amp;lt;dbl&amp;gt;, fg_prob &amp;lt;dbl&amp;gt;, safety_prob &amp;lt;dbl&amp;gt;, td_prob &amp;lt;dbl&amp;gt;,
+## #   extra_point_prob &amp;lt;dbl&amp;gt;, two_point_conversion_prob &amp;lt;dbl&amp;gt;, ep &amp;lt;dbl&amp;gt;,
+## #   epa &amp;lt;dbl&amp;gt;, total_home_epa &amp;lt;dbl&amp;gt;, total_away_epa &amp;lt;dbl&amp;gt;,
+## #   total_home_rush_epa &amp;lt;dbl&amp;gt;, total_away_rush_epa &amp;lt;dbl&amp;gt;,
+## #   total_home_pass_epa &amp;lt;dbl&amp;gt;, total_away_pass_epa &amp;lt;dbl&amp;gt;, air_epa &amp;lt;dbl&amp;gt;,
+## #   yac_epa &amp;lt;dbl&amp;gt;, comp_air_epa &amp;lt;dbl&amp;gt;, comp_yac_epa &amp;lt;dbl&amp;gt;,
+## #   total_home_comp_air_epa &amp;lt;dbl&amp;gt;, total_away_comp_air_epa &amp;lt;dbl&amp;gt;,
+## #   total_home_comp_yac_epa &amp;lt;dbl&amp;gt;, total_away_comp_yac_epa &amp;lt;dbl&amp;gt;,
+## #   total_home_raw_air_epa &amp;lt;dbl&amp;gt;, total_away_raw_air_epa &amp;lt;dbl&amp;gt;,
+## #   total_home_raw_yac_epa &amp;lt;dbl&amp;gt;, total_away_raw_yac_epa &amp;lt;dbl&amp;gt;, wp &amp;lt;dbl&amp;gt;,
+## #   def_wp &amp;lt;dbl&amp;gt;, home_wp &amp;lt;dbl&amp;gt;, away_wp &amp;lt;dbl&amp;gt;, wpa &amp;lt;dbl&amp;gt;, home_wp_post &amp;lt;dbl&amp;gt;,
+## #   away_wp_post &amp;lt;dbl&amp;gt;, vegas_wp &amp;lt;dbl&amp;gt;, vegas_home_wp &amp;lt;dbl&amp;gt;,
+## #   total_home_rush_wpa &amp;lt;dbl&amp;gt;, total_away_rush_wpa &amp;lt;dbl&amp;gt;,
+## #   total_home_pass_wpa &amp;lt;dbl&amp;gt;, total_away_pass_wpa &amp;lt;dbl&amp;gt;, air_wpa &amp;lt;dbl&amp;gt;,
+## #   yac_wpa &amp;lt;dbl&amp;gt;, comp_air_wpa &amp;lt;dbl&amp;gt;, comp_yac_wpa &amp;lt;dbl&amp;gt;,
+## #   total_home_comp_air_wpa &amp;lt;dbl&amp;gt;, ...&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We now have every play of the 2019 NFL season! The dataset is missing fantasy points, so we need to calculate them for the game we are interested in. Since we will reuse this calculation a lot, it’s best to write a function. I will call it &lt;em&gt;calc_ff&lt;/em&gt;:&lt;br /&gt;
+You can use &lt;code&gt;. %&amp;gt;%&lt;/code&gt; to create a anonymous function. The function calculates the time, that has progressed since the start of a game in seconds, in order to sort it by this variable. This is necessary because we will use &lt;code&gt;accumulate()&lt;/code&gt; to sum up the plays shortly.&lt;br /&gt;
+After that we will calculate the points. Every yards gained equals a tenth of a point, touchdowns give 6 points, if you fumble you will lose 2 points. This calculation is for the &lt;em&gt;.5PPR&lt;/em&gt; format, so each reception will give you half a point. You get 2 points for a successful Two-Point-Conversion.&lt;br /&gt;
+After that, we accumulate the independent plays in order to get the total fantasy points up to that point.&lt;br /&gt;
+Lastly, I used the relatively new but awesome function &lt;code&gt;relocate()&lt;/code&gt; to display the points in front. We will also create a function to calculate for the whole season.&lt;br /&gt;
+&lt;em&gt;(Note: This calculation will only work for skill positions, if you would like to analyze Quaterbacks you have to change the function a bit)&lt;/em&gt;&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;calc_ff &amp;lt;- . %&amp;gt;%
+  arrange(desc(game_seconds_remaining)) %&amp;gt;%
+  mutate(time_in_sec = 3600 - game_seconds_remaining) %&amp;gt;%
+  mutate(
+    ff_points = yards_gained / 10,
+    ff_points = ifelse(touchdown, ff_points + 6, ff_points),
+    ff_points = ifelse(fumble_lost, ff_points - 2, ff_points),
+    ff_points = ifelse(play_type == &amp;quot;pass&amp;quot; &amp;amp; complete_pass, ff_points + .5, ff_points),
+    ff_points = ifelse(two_point_attempt &amp;amp; two_point_conv_result == &amp;quot;success&amp;quot;, 2, ff_points),
+    ff_points_sum = accumulate(ff_points, sum),
+    ff_points_total = last(ff_points_sum)
+  ) %&amp;gt;%
+  relocate(contains(&amp;quot;ff_points&amp;quot;), .before = play_id)
+
+calc_ff_season &amp;lt;- . %&amp;gt;%
+  group_by(game_date) %&amp;gt;%
+  calc_ff() %&amp;gt;%
+  ungroup()&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Visualization for NFl related things is a perfect opportunity to try out the package &lt;em&gt;teamcolors&lt;/em&gt;.&lt;br /&gt;
+There is a little bit of setup required to get it to work with our data&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(teamcolors)
+
+# Unfortunately Play-By-Play Data uses Abbreviations while Teamcolors uses full names
+team_abbr &amp;lt;- tribble(
+  ~name, ~team_code,
+  &amp;quot;Arizona Cardinals&amp;quot;, &amp;quot;ARI&amp;quot;,
+  &amp;quot;Atlanta Falcons&amp;quot;, &amp;quot;ATL&amp;quot;,
+  &amp;quot;Baltimore Ravens&amp;quot;, &amp;quot;BAL&amp;quot;,
+  &amp;quot;Buffalo Bills&amp;quot;, &amp;quot;BUF&amp;quot;,
+  &amp;quot;Carolina Panthers&amp;quot;, &amp;quot;CAR&amp;quot;,
+  &amp;quot;Chicago Bears&amp;quot;, &amp;quot;CHI&amp;quot;,
+  &amp;quot;Cincinnati Bengals&amp;quot;, &amp;quot;CIN&amp;quot;,
+  &amp;quot;Cleveland Browns&amp;quot;, &amp;quot;CLE&amp;quot;,
+  &amp;quot;Dallas Cowboys&amp;quot;, &amp;quot;DAL&amp;quot;,
+  &amp;quot;Denver Broncos&amp;quot;, &amp;quot;DEN&amp;quot;,
+  &amp;quot;Detroit Lions&amp;quot;, &amp;quot;DET&amp;quot;,
+  &amp;quot;Green Bay Packers&amp;quot;, &amp;quot;GB&amp;quot;,
+  &amp;quot;Houston Texans&amp;quot;, &amp;quot;HOU&amp;quot;,
+  &amp;quot;Indianapolis Colts&amp;quot;, &amp;quot;IND&amp;quot;,
+  &amp;quot;Jacksonville Jaguars&amp;quot;, &amp;quot;JAX&amp;quot;,
+  &amp;quot;Kansas City Chiefs&amp;quot;, &amp;quot;KC&amp;quot;,
+  &amp;quot;Los Angeles Chargers&amp;quot;, &amp;quot;LAC&amp;quot;,
+  &amp;quot;Los Angeles Rams&amp;quot;, &amp;quot;LA&amp;quot;,
+  &amp;quot;Miami Dolphins&amp;quot;, &amp;quot;MIA&amp;quot;,
+  &amp;quot;Minnesota Vikings&amp;quot;, &amp;quot;MIN&amp;quot;,
+  &amp;quot;New England Patriots&amp;quot;, &amp;quot;NE&amp;quot;,
+  &amp;quot;New Orleans Saints&amp;quot;, &amp;quot;NO&amp;quot;,
+  &amp;quot;New York Giants&amp;quot;, &amp;quot;NYG&amp;quot;,
+  &amp;quot;New York Jets&amp;quot;, &amp;quot;NYJ&amp;quot;,
+  &amp;quot;Oakland Raiders&amp;quot;, &amp;quot;LV&amp;quot;,
+  &amp;quot;Philadelphia Eagles&amp;quot;, &amp;quot;PHI&amp;quot;,
+  &amp;quot;Pittsburgh Steelers&amp;quot;, &amp;quot;PIT&amp;quot;,
+  &amp;quot;San Francisco 49ers&amp;quot;, &amp;quot;SF&amp;quot;,
+  &amp;quot;Seattle Seahawks&amp;quot;, &amp;quot;SEA&amp;quot;,
+  &amp;quot;Tampa Bay Buccaneers&amp;quot;, &amp;quot;TB&amp;quot;,
+  &amp;quot;Tennessee Titans&amp;quot;, &amp;quot;TEN&amp;quot;,
+  &amp;quot;Washington Redskins&amp;quot;, &amp;quot;WAS&amp;quot;
+)
+
+teamcols &amp;lt;- filter(teamcolors, league == &amp;quot;nfl&amp;quot;) %&amp;gt;%
+  left_join(team_abbr, by = &amp;quot;name&amp;quot;) %&amp;gt;%
+  select(team_code, name, primary, secondary, logo)
+
+teamcols&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## # A tibble: 32 x 5
+##    team_code name        primary secondary logo                                 
+##    &amp;lt;chr&amp;gt;     &amp;lt;chr&amp;gt;       &amp;lt;chr&amp;gt;   &amp;lt;chr&amp;gt;     &amp;lt;chr&amp;gt;                                
+##  1 ARI       Arizona Ca~ #97233f #000000   http://content.sportslogos.net/logos~
+##  2 ATL       Atlanta Fa~ #a71930 #000000   http://content.sportslogos.net/logos~
+##  3 BAL       Baltimore ~ #241773 #000000   http://content.sportslogos.net/logos~
+##  4 BUF       Buffalo Bi~ #00338d #c60c30   http://content.sportslogos.net/logos~
+##  5 CAR       Carolina P~ #0085ca #000000   http://content.sportslogos.net/logos~
+##  6 CHI       Chicago Be~ #0b162a #c83803   http://content.sportslogos.net/logos~
+##  7 CIN       Cincinnati~ #000000 #fb4f14   http://content.sportslogos.net/logos~
+##  8 CLE       Cleveland ~ #fb4f14 #22150c   http://content.sportslogos.net/logos~
+##  9 DAL       Dallas Cow~ #002244 #b0b7bc   http://content.sportslogos.net/logos~
+## 10 DEN       Denver Bro~ #002244 #fb4f14   http://content.sportslogos.net/logos~
+## # ... with 22 more rows&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now that we have the team abbreviations we can join with our dataset:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;pbp &amp;lt;- pbp %&amp;gt;% left_join(teamcols, by = c(&amp;quot;posteam&amp;quot; = &amp;quot;team_code&amp;quot;))&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We are finally ready to do some visualization.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;visualization-of-weekly-perfomances&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Visualization of weekly perfomances&lt;/h2&gt;
+&lt;p&gt;As discussed earlier in this post, we will reuse the same plot a few times, so we should just write a function for it. We want to plot the performance of a player for a given week so those will be our arguments along with a plot title.&lt;br /&gt;
+I also would like to make the graph interactive, using the &lt;em&gt;plotly&lt;/em&gt; package.&lt;br /&gt;
+First we filter out only the plays for our player (using his id) and the given week. The dataset now only contains plays from the specified week, where the player was involved as a receiver or runner, so on this data we can run our function to calculate his fantasy points.&lt;br /&gt;
+&lt;code&gt;text_disp&lt;/code&gt; will contain the text, that we want to display if you hover over an event. Events are either a Touchdown, which we will display as a red dot or a fumble, which will be a black dot.&lt;br /&gt;
+The Line, that shows the Fantasy Points over Game Time will be colored in the primary color of the players team.&lt;br /&gt;
+Each quater will be seperated by a dashed &lt;em&gt;vline&lt;/em&gt;. The rest of the code is necessary so that plotly won’t display labels for the time axis.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(plotly)
+
+plot_week_performance &amp;lt;- function(player_id, week_nr, plot_title) {
+  p &amp;lt;- pbp %&amp;gt;%
+    filter(
+      receiver_player_id == player_id | rusher_player_id == player_id,
+      week == week_nr
+    ) %&amp;gt;%
+    calc_ff() %&amp;gt;%
+    arrange(time_in_sec) %&amp;gt;%
+    mutate(text_disp = glue::glue(&amp;quot;Quater: {qtr}\nDrive: {drive}\nTime: {time}\n\nScore\n{away_team}: {total_away_score}\n{home_team}: {total_home_score}\n&amp;quot;)) %&amp;gt;%
+    ggplot(aes(time_in_sec, ff_points_sum, color = primary)) +
+    geom_line(size = 1) +
+    geom_point(
+      shape = 19, color = &amp;quot;red&amp;quot;, size = 2, data = . %&amp;gt;% filter(touchdown == T),
+      aes(time_in_sec, ff_points_sum, text = text_disp)
+    ) +
+    geom_point(
+      shape = 19, color = &amp;quot;black&amp;quot;, size = 2, data = . %&amp;gt;% filter(fumble == T),
+      aes(time_in_sec, ff_points_sum, text = text_disp)
+    ) +
+    geom_vline(xintercept = c(900, 1800, 2700), alpha = .5, lty = 2) +
+    expand_limits(x = c(0, 3600)) +
+    scale_x_continuous(labels = NULL, breaks = NULL) +
+    scale_color_identity() +
+    theme_hubnr_thin() +
+    labs(
+      title = plot_title,
+      x = &amp;quot;Time&amp;quot;,
+      y = &amp;quot;Fantasy Points&amp;quot;
+    ) +
+    theme(
+      legend.position = &amp;quot;none&amp;quot;,
+      axis.ticks.x = element_blank(),
+      axis.text.x = element_blank()
+    )
+
+  ggplotly(p, tooltip = &amp;quot;text&amp;quot;)
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now that we have our plot generating function, we should test it on some of the best fantasy performances of the last season.&lt;br /&gt;
+In order to get results you need a player_id, which you can get by filtering the dataset for the specific player (Hint: Kenyan Drake would be ‘K.Drake’). I will omit this step for this post.&lt;/p&gt;
+&lt;div id=&#34;kenyan-drake---week-15-and-16&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Kenyan Drake - Week 15 (and 16)&lt;/h3&gt;
+&lt;p&gt;Let’s start with Kenyan Drake. After a disappointing first half of the season on the Miami Dolphins, Drake got traded to the Arizona Cardinals, where he became fantasy gold immediatly. Especially his performances in the Fantasy Football playoffs made Kenyan Drake a &lt;em&gt;League Winner&lt;/em&gt;&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;plot_week_performance(&amp;quot;32013030-2d30-3033-3331-31385a388006&amp;quot;, 15, &amp;quot;Kenyan Drake - Week 15&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;div id=&#34;htmlwidget-1&#34; style=&#34;width:2400px;height:1800px;&#34; class=&#34;plotly html-widget&#34;&gt;&lt;/div&gt;
+&lt;script type=&#34;application/json&#34; data-for=&#34;htmlwidget-1&#34;&gt;{&#34;x&#34;:{&#34;data&#34;:[{&#34;x&#34;:[6,37,62,285,683,900,1074,1335,1532,1668,1680,1717,2207,2441,2595,2949,2992,3035,3108,3149,3173,3215,3262],&#34;y&#34;:[1.6,3,4.3,10.8,10.9,10.6,16.7,18.1,18.2,18.5,19.1,19.4,19.8,19.8,25.9,27.1,27.8,27.8,28.7,36.4,38.5,38.8,39.1],&#34;text&#34;:&#34;&#34;,&#34;type&#34;:&#34;scatter&#34;,&#34;mode&#34;:&#34;lines&#34;,&#34;line&#34;:{&#34;width&#34;:3.77952755905512,&#34;color&#34;:&#34;rgba(151,35,63,1)&#34;,&#34;dash&#34;:&#34;solid&#34;},&#34;hoveron&#34;:&#34;points&#34;,&#34;name&#34;:&#34;#97233f&#34;,&#34;legendgroup&#34;:&#34;#97233f&#34;,&#34;showlegend&#34;:true,&#34;xaxis&#34;:&#34;x&#34;,&#34;yaxis&#34;:&#34;y&#34;,&#34;hoverinfo&#34;:&#34;text&#34;,&#34;frame&#34;:null},{&#34;x&#34;:[285,1074,2595,3149],&#34;y&#34;:[10.8,16.7,25.9,36.4],&#34;text&#34;:[&#34;Quater: 1&lt;br /&gt;Drive: 1&lt;br /&gt;Time: 10:15&lt;br /&gt;&lt;br /&gt;Score&lt;br /&gt;CLE: 0&lt;br /&gt;ARI: 6&#34;,&#34;Quater: 2&lt;br /&gt;Drive: 5&lt;br /&gt;Time: 12:06&lt;br /&gt;&lt;br /&gt;Score&lt;br /&gt;CLE: 0&lt;br /&gt;ARI: 13&#34;,&#34;Quater: 3&lt;br /&gt;Drive: 14&lt;br /&gt;Time: 01:45&lt;br /&gt;&lt;br /&gt;Score&lt;br /&gt;CLE: 17&lt;br /&gt;ARI: 27&#34;,&#34;Quater: 4&lt;br /&gt;Drive: 16&lt;br /&gt;Time: 07:31&lt;br /&gt;&lt;br /&gt;Score&lt;br /&gt;CLE: 17&lt;br /&gt;ARI: 34&#34;],&#34;type&#34;:&#34;scatter&#34;,&#34;mode&#34;:&#34;markers&#34;,&#34;marker&#34;:{&#34;autocolorscale&#34;:false,&#34;color&#34;:&#34;rgba(255,0,0,1)&#34;,&#34;opacity&#34;:1,&#34;size&#34;:7.55905511811024,&#34;symbol&#34;:&#34;circle&#34;,&#34;line&#34;:{&#34;width&#34;:1.88976377952756,&#34;color&#34;:&#34;rgba(255,0,0,1)&#34;}},&#34;hoveron&#34;:&#34;points&#34;,&#34;showlegend&#34;:false,&#34;xaxis&#34;:&#34;x&#34;,&#34;yaxis&#34;:&#34;y&#34;,&#34;hoverinfo&#34;:&#34;text&#34;,&#34;frame&#34;:null},{&#34;visible&#34;:false,&#34;showlegend&#34;:false,&#34;xaxis&#34;:null,&#34;yaxis&#34;:null,&#34;hoverinfo&#34;:&#34;text&#34;,&#34;frame&#34;:null},{&#34;x&#34;:[1800,1800,null,2700,2700,null,900,900],&#34;y&#34;:[-0.275,40.975,null,-0.275,40.975,null,-0.275,40.975],&#34;text&#34;:&#34;&#34;,&#34;type&#34;:&#34;scatter&#34;,&#34;mode&#34;:&#34;lines&#34;,&#34;line&#34;:{&#34;width&#34;:1.88976377952756,&#34;color&#34;:&#34;rgba(0,0,0,0.5)&#34;,&#34;dash&#34;:&#34;dash&#34;},&#34;hoveron&#34;:&#34;points&#34;,&#34;showlegend&#34;:false,&#34;xaxis&#34;:&#34;x&#34;,&#34;yaxis&#34;:&#34;y&#34;,&#34;hoverinfo&#34;:&#34;text&#34;,&#34;frame&#34;:null},{&#34;visible&#34;:false,&#34;showlegend&#34;:false,&#34;xaxis&#34;:&#34;x&#34;,&#34;yaxis&#34;:&#34;y&#34;,&#34;hoverinfo&#34;:&#34;text&#34;,&#34;frame&#34;:null}],&#34;layout&#34;:{&#34;margin&#34;:{&#34;t&#34;:55.1252801992528,&#34;r&#34;:19.2,&#34;b&#34;:40.1215442092155,&#34;l&#34;:57.3901203819012},&#34;font&#34;:{&#34;color&#34;:&#34;rgba(0,0,0,1)&#34;,&#34;family&#34;:&#34;Roboto Thin&#34;,&#34;size&#34;:17.2685761726858},&#34;title&#34;:{&#34;text&#34;:&#34;&lt;b&gt; Kenyan Drake - Week 15 &lt;\/b&gt;&#34;,&#34;font&#34;:{&#34;color&#34;:&#34;rgba(0,0,0,1)&#34;,&#34;family&#34;:&#34;Roboto&#34;,&#34;size&#34;:19.9252801992528},&#34;x&#34;:0,&#34;xref&#34;:&#34;paper&#34;},&#34;xaxis&#34;:{&#34;domain&#34;:[0,1],&#34;automargin&#34;:true,&#34;type&#34;:&#34;linear&#34;,&#34;autorange&#34;:false,&#34;range&#34;:[-180,3780],&#34;tickmode&#34;:&#34;array&#34;,&#34;ticktext&#34;:[null],&#34;categoryorder&#34;:&#34;array&#34;,&#34;categoryarray&#34;:[null],&#34;nticks&#34;:null,&#34;ticks&#34;:&#34;&#34;,&#34;tickcolor&#34;:null,&#34;ticklen&#34;:3.65296803652968,&#34;tickwidth&#34;:0,&#34;showticklabels&#34;:false,&#34;tickfont&#34;:{&#34;color&#34;:null,&#34;family&#34;:null,&#34;size&#34;:0},&#34;tickangle&#34;:-0,&#34;showline&#34;:false,&#34;linecolor&#34;:null,&#34;linewidth&#34;:0,&#34;showgrid&#34;:true,&#34;gridcolor&#34;:&#34;rgba(210,210,210,1)&#34;,&#34;gridwidth&#34;:0.66417600664176,&#34;zeroline&#34;:false,&#34;anchor&#34;:&#34;y&#34;,&#34;title&#34;:{&#34;text&#34;:&#34;&lt;b&gt; Time &lt;\/b&gt;&#34;,&#34;font&#34;:{&#34;color&#34;:&#34;rgba(0,0,0,1)&#34;,&#34;family&#34;:&#34;Roboto&#34;,&#34;size&#34;:17.2685761726858}},&#34;hoverformat&#34;:&#34;.2f&#34;},&#34;yaxis&#34;:{&#34;domain&#34;:[0,1],&#34;automargin&#34;:true,&#34;type&#34;:&#34;linear&#34;,&#34;autorange&#34;:false,&#34;range&#34;:[-0.275,40.975],&#34;tickmode&#34;:&#34;array&#34;,&#34;ticktext&#34;:[&#34;0&#34;,&#34;10&#34;,&#34;20&#34;,&#34;30&#34;,&#34;40&#34;],&#34;tickvals&#34;:[0,10,20,30,40],&#34;categoryorder&#34;:&#34;array&#34;,&#34;categoryarray&#34;:[&#34;0&#34;,&#34;10&#34;,&#34;20&#34;,&#34;30&#34;,&#34;40&#34;],&#34;nticks&#34;:null,&#34;ticks&#34;:&#34;&#34;,&#34;tickcolor&#34;:null,&#34;ticklen&#34;:3.65296803652968,&#34;tickwidth&#34;:0,&#34;showticklabels&#34;:true,&#34;tickfont&#34;:{&#34;color&#34;:&#34;rgba(0,0,0,1)&#34;,&#34;family&#34;:&#34;Roboto Thin&#34;,&#34;size&#34;:17.2685761726858},&#34;tickangle&#34;:-0,&#34;showline&#34;:false,&#34;linecolor&#34;:null,&#34;linewidth&#34;:0,&#34;showgrid&#34;:true,&#34;gridcolor&#34;:&#34;rgba(210,210,210,1)&#34;,&#34;gridwidth&#34;:0.66417600664176,&#34;zeroline&#34;:false,&#34;anchor&#34;:&#34;x&#34;,&#34;title&#34;:{&#34;text&#34;:&#34;&lt;b&gt; Fantasy Points &lt;\/b&gt;&#34;,&#34;font&#34;:{&#34;color&#34;:&#34;rgba(0,0,0,1)&#34;,&#34;family&#34;:&#34;Roboto&#34;,&#34;size&#34;:17.2685761726858}},&#34;hoverformat&#34;:&#34;.2f&#34;},&#34;shapes&#34;:[{&#34;type&#34;:&#34;rect&#34;,&#34;fillcolor&#34;:null,&#34;line&#34;:{&#34;color&#34;:null,&#34;width&#34;:0,&#34;linetype&#34;:[]},&#34;yref&#34;:&#34;paper&#34;,&#34;xref&#34;:&#34;paper&#34;,&#34;x0&#34;:0,&#34;x1&#34;:1,&#34;y0&#34;:0,&#34;y1&#34;:1}],&#34;showlegend&#34;:false,&#34;legend&#34;:{&#34;bgcolor&#34;:null,&#34;bordercolor&#34;:null,&#34;borderwidth&#34;:0,&#34;font&#34;:{&#34;color&#34;:&#34;rgba(0,0,0,1)&#34;,&#34;family&#34;:&#34;Roboto Thin&#34;,&#34;size&#34;:13.8148609381486}},&#34;hovermode&#34;:&#34;closest&#34;,&#34;barmode&#34;:&#34;relative&#34;},&#34;config&#34;:{&#34;doubleClick&#34;:&#34;reset&#34;,&#34;showSendToCloud&#34;:false},&#34;source&#34;:&#34;A&#34;,&#34;attrs&#34;:{&#34;6d013391bc5&#34;:{&#34;x&#34;:{},&#34;y&#34;:{},&#34;colour&#34;:{},&#34;type&#34;:&#34;scatter&#34;},&#34;6d0cee75da&#34;:{&#34;x&#34;:{},&#34;y&#34;:{},&#34;text&#34;:{},&#34;x.1&#34;:{},&#34;y.1&#34;:{},&#34;colour&#34;:{}},&#34;6d0765e7cfd&#34;:{&#34;x&#34;:{},&#34;y&#34;:{},&#34;text&#34;:{},&#34;x.1&#34;:{},&#34;y.1&#34;:{},&#34;colour&#34;:{}},&#34;6d040683144&#34;:{&#34;xintercept&#34;:{}},&#34;6d0f5574a7&#34;:{&#34;x&#34;:{}}},&#34;cur_data&#34;:&#34;6d013391bc5&#34;,&#34;visdat&#34;:{&#34;6d013391bc5&#34;:[&#34;function (y) &#34;,&#34;x&#34;],&#34;6d0cee75da&#34;:[&#34;function (y) &#34;,&#34;x&#34;],&#34;6d0765e7cfd&#34;:[&#34;function (y) &#34;,&#34;x&#34;],&#34;6d040683144&#34;:[&#34;function (y) &#34;,&#34;x&#34;],&#34;6d0f5574a7&#34;:[&#34;function (y) &#34;,&#34;x&#34;]},&#34;highlight&#34;:{&#34;on&#34;:&#34;plotly_click&#34;,&#34;persistent&#34;:false,&#34;dynamic&#34;:false,&#34;selectize&#34;:false,&#34;opacityDim&#34;:0.2,&#34;selected&#34;:{&#34;opacity&#34;:1},&#34;debounce&#34;:0},&#34;shinyEvents&#34;:[&#34;plotly_hover&#34;,&#34;plotly_click&#34;,&#34;plotly_selected&#34;,&#34;plotly_relayout&#34;,&#34;plotly_brushed&#34;,&#34;plotly_brushing&#34;,&#34;plotly_clickannotation&#34;,&#34;plotly_doubleclick&#34;,&#34;plotly_deselect&#34;,&#34;plotly_afterplot&#34;,&#34;plotly_sunburstclick&#34;],&#34;base_url&#34;:&#34;https://plot.ly&#34;},&#34;evals&#34;:[],&#34;jsHooks&#34;:[]}&lt;/script&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;plot_week_performance(&amp;quot;32013030-2d30-3033-3331-31385a388006&amp;quot;, 16, &amp;quot;Kenyan Drake - Week 16&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;div id=&#34;htmlwidget-2&#34; style=&#34;width:2400px;height:1800px;&#34; class=&#34;plotly html-widget&#34;&gt;&lt;/div&gt;
+&lt;script type=&#34;application/json&#34; data-for=&#34;htmlwidget-2&#34;&gt;{&#34;x&#34;:{&#34;data&#34;:[{&#34;x&#34;:[7,375,736,952,1132,1383,1487,1657,1760,1891,1918,2098,2135,2333,2359,2402,2447,2484,2568,2710,2811,3041,3086,3257,3338,3430,3438,3480],&#34;y&#34;:[0.2,14.2,14.8,15.8,16.1,16.4,16.7,18.1,18.3,19.8,19.6,19.8,19.9,20.7,21.2,21.6,21.8,22.9,23.4,23.4,23.8,24.4,24.6,24.5,30.8,31.1,31.3,31.9],&#34;text&#34;:&#34;&#34;,&#34;type&#34;:&#34;scatter&#34;,&#34;mode&#34;:&#34;lines&#34;,&#34;line&#34;:{&#34;width&#34;:3.77952755905512,&#34;color&#34;:&#34;rgba(151,35,63,1)&#34;,&#34;dash&#34;:&#34;solid&#34;},&#34;hoveron&#34;:&#34;points&#34;,&#34;name&#34;:&#34;#97233f&#34;,&#34;legendgroup&#34;:&#34;#97233f&#34;,&#34;showlegend&#34;:true,&#34;xaxis&#34;:&#34;x&#34;,&#34;yaxis&#34;:&#34;y&#34;,&#34;hoverinfo&#34;:&#34;text&#34;,&#34;frame&#34;:null},{&#34;x&#34;:[375,3338],&#34;y&#34;:[14.2,30.8],&#34;text&#34;:[&#34;Quater: 1&lt;br /&gt;Drive: 3&lt;br /&gt;Time: 08:45&lt;br /&gt;&lt;br /&gt;Score&lt;br /&gt;ARI: 6&lt;br /&gt;SEA: 7&#34;,&#34;Quater: 4&lt;br /&gt;Drive: 24&lt;br /&gt;Time: 04:22&lt;br /&gt;&lt;br /&gt;Score&lt;br /&gt;ARI: 26&lt;br /&gt;SEA: 13&#34;],&#34;type&#34;:&#34;scatter&#34;,&#34;mode&#34;:&#34;markers&#34;,&#34;marker&#34;:{&#34;autocolorscale&#34;:false,&#34;color&#34;:&#34;rgba(255,0,0,1)&#34;,&#34;opacity&#34;:1,&#34;size&#34;:7.55905511811024,&#34;symbol&#34;:&#34;circle&#34;,&#34;line&#34;:{&#34;width&#34;:1.88976377952756,&#34;color&#34;:&#34;rgba(255,0,0,1)&#34;}},&#34;hoveron&#34;:&#34;points&#34;,&#34;showlegend&#34;:false,&#34;xaxis&#34;:&#34;x&#34;,&#34;yaxis&#34;:&#34;y&#34;,&#34;hoverinfo&#34;:&#34;text&#34;,&#34;frame&#34;:null},{&#34;visible&#34;:false,&#34;showlegend&#34;:false,&#34;xaxis&#34;:null,&#34;yaxis&#34;:null,&#34;hoverinfo&#34;:&#34;text&#34;,&#34;frame&#34;:null},{&#34;x&#34;:[1800,1800,null,2700,2700,null,900,900],&#34;y&#34;:[-1.385,33.485,null,-1.385,33.485,null,-1.385,33.485],&#34;text&#34;:&#34;&#34;,&#34;type&#34;:&#34;scatter&#34;,&#34;mode&#34;:&#34;lines&#34;,&#34;line&#34;:{&#34;width&#34;:1.88976377952756,&#34;color&#34;:&#34;rgba(0,0,0,0.5)&#34;,&#34;dash&#34;:&#34;dash&#34;},&#34;hoveron&#34;:&#34;points&#34;,&#34;showlegend&#34;:false,&#34;xaxis&#34;:&#34;x&#34;,&#34;yaxis&#34;:&#34;y&#34;,&#34;hoverinfo&#34;:&#34;text&#34;,&#34;frame&#34;:null},{&#34;visible&#34;:false,&#34;showlegend&#34;:false,&#34;xaxis&#34;:&#34;x&#34;,&#34;yaxis&#34;:&#34;y&#34;,&#34;hoverinfo&#34;:&#34;text&#34;,&#34;frame&#34;:null}],&#34;layout&#34;:{&#34;margin&#34;:{&#34;t&#34;:55.1252801992528,&#34;r&#34;:19.2,&#34;b&#34;:40.1215442092155,&#34;l&#34;:57.3901203819012},&#34;font&#34;:{&#34;color&#34;:&#34;rgba(0,0,0,1)&#34;,&#34;family&#34;:&#34;Roboto Thin&#34;,&#34;size&#34;:17.2685761726858},&#34;title&#34;:{&#34;text&#34;:&#34;&lt;b&gt; Kenyan Drake - Week 16 &lt;\/b&gt;&#34;,&#34;font&#34;:{&#34;color&#34;:&#34;rgba(0,0,0,1)&#34;,&#34;family&#34;:&#34;Roboto&#34;,&#34;size&#34;:19.9252801992528},&#34;x&#34;:0,&#34;xref&#34;:&#34;paper&#34;},&#34;xaxis&#34;:{&#34;domain&#34;:[0,1],&#34;automargin&#34;:true,&#34;type&#34;:&#34;linear&#34;,&#34;autorange&#34;:false,&#34;range&#34;:[-180,3780],&#34;tickmode&#34;:&#34;array&#34;,&#34;ticktext&#34;:[null],&#34;categoryorder&#34;:&#34;array&#34;,&#34;categoryarray&#34;:[null],&#34;nticks&#34;:null,&#34;ticks&#34;:&#34;&#34;,&#34;tickcolor&#34;:null,&#34;ticklen&#34;:3.65296803652968,&#34;tickwidth&#34;:0,&#34;showticklabels&#34;:false,&#34;tickfont&#34;:{&#34;color&#34;:null,&#34;family&#34;:null,&#34;size&#34;:0},&#34;tickangle&#34;:-0,&#34;showline&#34;:false,&#34;linecolor&#34;:null,&#34;linewidth&#34;:0,&#34;showgrid&#34;:true,&#34;gridcolor&#34;:&#34;rgba(210,210,210,1)&#34;,&#34;gridwidth&#34;:0.66417600664176,&#34;zeroline&#34;:false,&#34;anchor&#34;:&#34;y&#34;,&#34;title&#34;:{&#34;text&#34;:&#34;&lt;b&gt; Time &lt;\/b&gt;&#34;,&#34;font&#34;:{&#34;color&#34;:&#34;rgba(0,0,0,1)&#34;,&#34;family&#34;:&#34;Roboto&#34;,&#34;size&#34;:17.2685761726858}},&#34;hoverformat&#34;:&#34;.2f&#34;},&#34;yaxis&#34;:{&#34;domain&#34;:[0,1],&#34;automargin&#34;:true,&#34;type&#34;:&#34;linear&#34;,&#34;autorange&#34;:false,&#34;range&#34;:[-1.385,33.485],&#34;tickmode&#34;:&#34;array&#34;,&#34;ticktext&#34;:[&#34;0&#34;,&#34;10&#34;,&#34;20&#34;,&#34;30&#34;],&#34;tickvals&#34;:[0,10,20,30],&#34;categoryorder&#34;:&#34;array&#34;,&#34;categoryarray&#34;:[&#34;0&#34;,&#34;10&#34;,&#34;20&#34;,&#34;30&#34;],&#34;nticks&#34;:null,&#34;ticks&#34;:&#34;&#34;,&#34;tickcolor&#34;:null,&#34;ticklen&#34;:3.65296803652968,&#34;tickwidth&#34;:0,&#34;showticklabels&#34;:true,&#34;tickfont&#34;:{&#34;color&#34;:&#34;rgba(0,0,0,1)&#34;,&#34;family&#34;:&#34;Roboto Thin&#34;,&#34;size&#34;:17.2685761726858},&#34;tickangle&#34;:-0,&#34;showline&#34;:false,&#34;linecolor&#34;:null,&#34;linewidth&#34;:0,&#34;showgrid&#34;:true,&#34;gridcolor&#34;:&#34;rgba(210,210,210,1)&#34;,&#34;gridwidth&#34;:0.66417600664176,&#34;zeroline&#34;:false,&#34;anchor&#34;:&#34;x&#34;,&#34;title&#34;:{&#34;text&#34;:&#34;&lt;b&gt; Fantasy Points &lt;\/b&gt;&#34;,&#34;font&#34;:{&#34;color&#34;:&#34;rgba(0,0,0,1)&#34;,&#34;family&#34;:&#34;Roboto&#34;,&#34;size&#34;:17.2685761726858}},&#34;hoverformat&#34;:&#34;.2f&#34;},&#34;shapes&#34;:[{&#34;type&#34;:&#34;rect&#34;,&#34;fillcolor&#34;:null,&#34;line&#34;:{&#34;color&#34;:null,&#34;width&#34;:0,&#34;linetype&#34;:[]},&#34;yref&#34;:&#34;paper&#34;,&#34;xref&#34;:&#34;paper&#34;,&#34;x0&#34;:0,&#34;x1&#34;:1,&#34;y0&#34;:0,&#34;y1&#34;:1}],&#34;showlegend&#34;:false,&#34;legend&#34;:{&#34;bgcolor&#34;:null,&#34;bordercolor&#34;:null,&#34;borderwidth&#34;:0,&#34;font&#34;:{&#34;color&#34;:&#34;rgba(0,0,0,1)&#34;,&#34;family&#34;:&#34;Roboto Thin&#34;,&#34;size&#34;:13.8148609381486}},&#34;hovermode&#34;:&#34;closest&#34;,&#34;barmode&#34;:&#34;relative&#34;},&#34;config&#34;:{&#34;doubleClick&#34;:&#34;reset&#34;,&#34;showSendToCloud&#34;:false},&#34;source&#34;:&#34;A&#34;,&#34;attrs&#34;:{&#34;6d012701da&#34;:{&#34;x&#34;:{},&#34;y&#34;:{},&#34;colour&#34;:{},&#34;type&#34;:&#34;scatter&#34;},&#34;6d030bb174f&#34;:{&#34;x&#34;:{},&#34;y&#34;:{},&#34;text&#34;:{},&#34;x.1&#34;:{},&#34;y.1&#34;:{},&#34;colour&#34;:{}},&#34;6d051488a&#34;:{&#34;x&#34;:{},&#34;y&#34;:{},&#34;text&#34;:{},&#34;x.1&#34;:{},&#34;y.1&#34;:{},&#34;colour&#34;:{}},&#34;6d015801912&#34;:{&#34;xintercept&#34;:{}},&#34;6d0af47753&#34;:{&#34;x&#34;:{}}},&#34;cur_data&#34;:&#34;6d012701da&#34;,&#34;visdat&#34;:{&#34;6d012701da&#34;:[&#34;function (y) &#34;,&#34;x&#34;],&#34;6d030bb174f&#34;:[&#34;function (y) &#34;,&#34;x&#34;],&#34;6d051488a&#34;:[&#34;function (y) &#34;,&#34;x&#34;],&#34;6d015801912&#34;:[&#34;function (y) &#34;,&#34;x&#34;],&#34;6d0af47753&#34;:[&#34;function (y) &#34;,&#34;x&#34;]},&#34;highlight&#34;:{&#34;on&#34;:&#34;plotly_click&#34;,&#34;persistent&#34;:false,&#34;dynamic&#34;:false,&#34;selectize&#34;:false,&#34;opacityDim&#34;:0.2,&#34;selected&#34;:{&#34;opacity&#34;:1},&#34;debounce&#34;:0},&#34;shinyEvents&#34;:[&#34;plotly_hover&#34;,&#34;plotly_click&#34;,&#34;plotly_selected&#34;,&#34;plotly_relayout&#34;,&#34;plotly_brushed&#34;,&#34;plotly_brushing&#34;,&#34;plotly_clickannotation&#34;,&#34;plotly_doubleclick&#34;,&#34;plotly_deselect&#34;,&#34;plotly_afterplot&#34;,&#34;plotly_sunburstclick&#34;],&#34;base_url&#34;:&#34;https://plot.ly&#34;},&#34;evals&#34;:[],&#34;jsHooks&#34;:[]}&lt;/script&gt;
+&lt;/div&gt;
+&lt;div id=&#34;christian-mccaffrey---week-1&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Christian McCaffrey - Week 1&lt;/h3&gt;
+&lt;p&gt;McCaffrey was awesome the whole season long (execpt week 2). He started the season off with an incredible performance, racking up 42.9 fantasy points. The insane thing about McCaffreys season is, that this wasn’t even his best fantasy performance (47.7 pts - Week 5 vs. Jax).&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;plot_week_performance(&amp;quot;32013030-2d30-3033-3332-3830ec2c3be7&amp;quot;, 1, &amp;quot;Christian McCaffreye - Week 1&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;div id=&#34;htmlwidget-3&#34; style=&#34;width:2400px;height:1800px;&#34; class=&#34;plotly html-widget&#34;&gt;&lt;/div&gt;
+&lt;script type=&#34;application/json&#34; data-for=&#34;htmlwidget-3&#34;&gt;{&#34;x&#34;:{&#34;data&#34;:[{&#34;x&#34;:[0,34,82,484,628,687,725,768,810,1043,1076,1154,1426,1463,1750,2057,2123,2189,2533,2573,2637,2782,2805,2911,3225,3354,3387,3412,3448,3470],&#34;y&#34;:[0.5,2.2,3.2,3.5,5.7,6.3,6.9,7.2,7.1,8.4,8.4,9.8,9.9,10.9,12.1,12.2,12.8,19.6,21.5,22.4,22.6,22.9,29.1,30,31.4,31.4,32.8,35.1,36.1,37.9],&#34;text&#34;:&#34;&#34;,&#34;type&#34;:&#34;scatter&#34;,&#34;mode&#34;:&#34;lines&#34;,&#34;line&#34;:{&#34;width&#34;:3.77952755905512,&#34;color&#34;:&#34;rgba(0,133,202,1)&#34;,&#34;dash&#34;:&#34;solid&#34;},&#34;hoveron&#34;:&#34;points&#34;,&#34;name&#34;:&#34;#0085ca&#34;,&#34;legendgroup&#34;:&#34;#0085ca&#34;,&#34;showlegend&#34;:true,&#34;xaxis&#34;:&#34;x&#34;,&#34;yaxis&#34;:&#34;y&#34;,&#34;hoverinfo&#34;:&#34;text&#34;,&#34;frame&#34;:null},{&#34;x&#34;:[2189,2805],&#34;y&#34;:[19.6,29.1],&#34;text&#34;:[&#34;Quater: 3&lt;br /&gt;Drive: 15&lt;br /&gt;Time: 08:31&lt;br /&gt;&lt;br /&gt;Score&lt;br /&gt;LA: 16&lt;br /&gt;CAR: 9&#34;,&#34;Quater: 4&lt;br /&gt;Drive: 19&lt;br /&gt;Time: 13:15&lt;br /&gt;&lt;br /&gt;Score&lt;br /&gt;LA: 23&lt;br /&gt;CAR: 19&#34;],&#34;type&#34;:&#34;scatter&#34;,&#34;mode&#34;:&#34;markers&#34;,&#34;marker&#34;:{&#34;autocolorscale&#34;:false,&#34;color&#34;:&#34;rgba(255,0,0,1)&#34;,&#34;opacity&#34;:1,&#34;size&#34;:7.55905511811024,&#34;symbol&#34;:&#34;circle&#34;,&#34;line&#34;:{&#34;width&#34;:1.88976377952756,&#34;color&#34;:&#34;rgba(255,0,0,1)&#34;}},&#34;hoveron&#34;:&#34;points&#34;,&#34;showlegend&#34;:false,&#34;xaxis&#34;:&#34;x&#34;,&#34;yaxis&#34;:&#34;y&#34;,&#34;hoverinfo&#34;:&#34;text&#34;,&#34;frame&#34;:null},{&#34;visible&#34;:false,&#34;showlegend&#34;:false,&#34;xaxis&#34;:null,&#34;yaxis&#34;:null,&#34;hoverinfo&#34;:&#34;text&#34;,&#34;frame&#34;:null},{&#34;x&#34;:[1800,1800,null,2700,2700,null,900,900],&#34;y&#34;:[-1.37,39.77,null,-1.37,39.77,null,-1.37,39.77],&#34;text&#34;:&#34;&#34;,&#34;type&#34;:&#34;scatter&#34;,&#34;mode&#34;:&#34;lines&#34;,&#34;line&#34;:{&#34;width&#34;:1.88976377952756,&#34;color&#34;:&#34;rgba(0,0,0,0.5)&#34;,&#34;dash&#34;:&#34;dash&#34;},&#34;hoveron&#34;:&#34;points&#34;,&#34;showlegend&#34;:false,&#34;xaxis&#34;:&#34;x&#34;,&#34;yaxis&#34;:&#34;y&#34;,&#34;hoverinfo&#34;:&#34;text&#34;,&#34;frame&#34;:null},{&#34;visible&#34;:false,&#34;showlegend&#34;:false,&#34;xaxis&#34;:&#34;x&#34;,&#34;yaxis&#34;:&#34;y&#34;,&#34;hoverinfo&#34;:&#34;text&#34;,&#34;frame&#34;:null}],&#34;layout&#34;:{&#34;margin&#34;:{&#34;t&#34;:55.1252801992528,&#34;r&#34;:19.2,&#34;b&#34;:40.1215442092155,&#34;l&#34;:57.3901203819012},&#34;font&#34;:{&#34;color&#34;:&#34;rgba(0,0,0,1)&#34;,&#34;family&#34;:&#34;Roboto Thin&#34;,&#34;size&#34;:17.2685761726858},&#34;title&#34;:{&#34;text&#34;:&#34;&lt;b&gt; Christian McCaffreye - Week 1 &lt;\/b&gt;&#34;,&#34;font&#34;:{&#34;color&#34;:&#34;rgba(0,0,0,1)&#34;,&#34;family&#34;:&#34;Roboto&#34;,&#34;size&#34;:19.9252801992528},&#34;x&#34;:0,&#34;xref&#34;:&#34;paper&#34;},&#34;xaxis&#34;:{&#34;domain&#34;:[0,1],&#34;automargin&#34;:true,&#34;type&#34;:&#34;linear&#34;,&#34;autorange&#34;:false,&#34;range&#34;:[-180,3780],&#34;tickmode&#34;:&#34;array&#34;,&#34;ticktext&#34;:[null],&#34;categoryorder&#34;:&#34;array&#34;,&#34;categoryarray&#34;:[null],&#34;nticks&#34;:null,&#34;ticks&#34;:&#34;&#34;,&#34;tickcolor&#34;:null,&#34;ticklen&#34;:3.65296803652968,&#34;tickwidth&#34;:0,&#34;showticklabels&#34;:false,&#34;tickfont&#34;:{&#34;color&#34;:null,&#34;family&#34;:null,&#34;size&#34;:0},&#34;tickangle&#34;:-0,&#34;showline&#34;:false,&#34;linecolor&#34;:null,&#34;linewidth&#34;:0,&#34;showgrid&#34;:true,&#34;gridcolor&#34;:&#34;rgba(210,210,210,1)&#34;,&#34;gridwidth&#34;:0.66417600664176,&#34;zeroline&#34;:false,&#34;anchor&#34;:&#34;y&#34;,&#34;title&#34;:{&#34;text&#34;:&#34;&lt;b&gt; Time &lt;\/b&gt;&#34;,&#34;font&#34;:{&#34;color&#34;:&#34;rgba(0,0,0,1)&#34;,&#34;family&#34;:&#34;Roboto&#34;,&#34;size&#34;:17.2685761726858}},&#34;hoverformat&#34;:&#34;.2f&#34;},&#34;yaxis&#34;:{&#34;domain&#34;:[0,1],&#34;automargin&#34;:true,&#34;type&#34;:&#34;linear&#34;,&#34;autorange&#34;:false,&#34;range&#34;:[-1.37,39.77],&#34;tickmode&#34;:&#34;array&#34;,&#34;ticktext&#34;:[&#34;0&#34;,&#34;10&#34;,&#34;20&#34;,&#34;30&#34;],&#34;tickvals&#34;:[0,10,20,30],&#34;categoryorder&#34;:&#34;array&#34;,&#34;categoryarray&#34;:[&#34;0&#34;,&#34;10&#34;,&#34;20&#34;,&#34;30&#34;],&#34;nticks&#34;:null,&#34;ticks&#34;:&#34;&#34;,&#34;tickcolor&#34;:null,&#34;ticklen&#34;:3.65296803652968,&#34;tickwidth&#34;:0,&#34;showticklabels&#34;:true,&#34;tickfont&#34;:{&#34;color&#34;:&#34;rgba(0,0,0,1)&#34;,&#34;family&#34;:&#34;Roboto Thin&#34;,&#34;size&#34;:17.2685761726858},&#34;tickangle&#34;:-0,&#34;showline&#34;:false,&#34;linecolor&#34;:null,&#34;linewidth&#34;:0,&#34;showgrid&#34;:true,&#34;gridcolor&#34;:&#34;rgba(210,210,210,1)&#34;,&#34;gridwidth&#34;:0.66417600664176,&#34;zeroline&#34;:false,&#34;anchor&#34;:&#34;x&#34;,&#34;title&#34;:{&#34;text&#34;:&#34;&lt;b&gt; Fantasy Points &lt;\/b&gt;&#34;,&#34;font&#34;:{&#34;color&#34;:&#34;rgba(0,0,0,1)&#34;,&#34;family&#34;:&#34;Roboto&#34;,&#34;size&#34;:17.2685761726858}},&#34;hoverformat&#34;:&#34;.2f&#34;},&#34;shapes&#34;:[{&#34;type&#34;:&#34;rect&#34;,&#34;fillcolor&#34;:null,&#34;line&#34;:{&#34;color&#34;:null,&#34;width&#34;:0,&#34;linetype&#34;:[]},&#34;yref&#34;:&#34;paper&#34;,&#34;xref&#34;:&#34;paper&#34;,&#34;x0&#34;:0,&#34;x1&#34;:1,&#34;y0&#34;:0,&#34;y1&#34;:1}],&#34;showlegend&#34;:false,&#34;legend&#34;:{&#34;bgcolor&#34;:null,&#34;bordercolor&#34;:null,&#34;borderwidth&#34;:0,&#34;font&#34;:{&#34;color&#34;:&#34;rgba(0,0,0,1)&#34;,&#34;family&#34;:&#34;Roboto Thin&#34;,&#34;size&#34;:13.8148609381486}},&#34;hovermode&#34;:&#34;closest&#34;,&#34;barmode&#34;:&#34;relative&#34;},&#34;config&#34;:{&#34;doubleClick&#34;:&#34;reset&#34;,&#34;showSendToCloud&#34;:false},&#34;source&#34;:&#34;A&#34;,&#34;attrs&#34;:{&#34;6d01e396d6a&#34;:{&#34;x&#34;:{},&#34;y&#34;:{},&#34;colour&#34;:{},&#34;type&#34;:&#34;scatter&#34;},&#34;6d03ff04c04&#34;:{&#34;x&#34;:{},&#34;y&#34;:{},&#34;text&#34;:{},&#34;x.1&#34;:{},&#34;y.1&#34;:{},&#34;colour&#34;:{}},&#34;6d05d6c7277&#34;:{&#34;x&#34;:{},&#34;y&#34;:{},&#34;text&#34;:{},&#34;x.1&#34;:{},&#34;y.1&#34;:{},&#34;colour&#34;:{}},&#34;6d07c64c9d&#34;:{&#34;xintercept&#34;:{}},&#34;6d0436314a&#34;:{&#34;x&#34;:{}}},&#34;cur_data&#34;:&#34;6d01e396d6a&#34;,&#34;visdat&#34;:{&#34;6d01e396d6a&#34;:[&#34;function (y) &#34;,&#34;x&#34;],&#34;6d03ff04c04&#34;:[&#34;function (y) &#34;,&#34;x&#34;],&#34;6d05d6c7277&#34;:[&#34;function (y) &#34;,&#34;x&#34;],&#34;6d07c64c9d&#34;:[&#34;function (y) &#34;,&#34;x&#34;],&#34;6d0436314a&#34;:[&#34;function (y) &#34;,&#34;x&#34;]},&#34;highlight&#34;:{&#34;on&#34;:&#34;plotly_click&#34;,&#34;persistent&#34;:false,&#34;dynamic&#34;:false,&#34;selectize&#34;:false,&#34;opacityDim&#34;:0.2,&#34;selected&#34;:{&#34;opacity&#34;:1},&#34;debounce&#34;:0},&#34;shinyEvents&#34;:[&#34;plotly_hover&#34;,&#34;plotly_click&#34;,&#34;plotly_selected&#34;,&#34;plotly_relayout&#34;,&#34;plotly_brushed&#34;,&#34;plotly_brushing&#34;,&#34;plotly_clickannotation&#34;,&#34;plotly_doubleclick&#34;,&#34;plotly_deselect&#34;,&#34;plotly_afterplot&#34;,&#34;plotly_sunburstclick&#34;],&#34;base_url&#34;:&#34;https://plot.ly&#34;},&#34;evals&#34;:[],&#34;jsHooks&#34;:[]}&lt;/script&gt;
+&lt;/div&gt;
+&lt;div id=&#34;aaron-jones---week-5&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Aaron Jones - Week 5&lt;/h3&gt;
+&lt;p&gt;Aaron Jones performance in Week 5 was spectacular. He was the running back, that scored the most points in a single game this season.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;plot_week_performance(&amp;quot;32013030-2d30-3033-3332-3933ed82c0de&amp;quot;, 5, &amp;quot;Aaron Jones - Week 5&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;div id=&#34;htmlwidget-4&#34; style=&#34;width:2400px;height:1800px;&#34; class=&#34;plotly html-widget&#34;&gt;&lt;/div&gt;
+&lt;script type=&#34;application/json&#34; data-for=&#34;htmlwidget-4&#34;&gt;{&#34;x&#34;:{&#34;data&#34;:[{&#34;x&#34;:[0,29,118,312,354,357,805,893,1298,1333,1425,1524,1567,1608,1986,2035,2122,2352,2486,2768,2809,2919,2979,3021,3134,3226,3270],&#34;y&#34;:[1.1,1.2,2.6,4.2,4.2,12,13.5,19.8,21.4,24.1,24.4,25.1,25.5,25.4,27.1,28.4,34.9,36.4,42.5,43,43,44.2,44.7,44.5,45.6,46.7,45.7],&#34;text&#34;:&#34;&#34;,&#34;type&#34;:&#34;scatter&#34;,&#34;mode&#34;:&#34;lines&#34;,&#34;line&#34;:{&#34;width&#34;:3.77952755905512,&#34;color&#34;:&#34;rgba(32,55,49,1)&#34;,&#34;dash&#34;:&#34;solid&#34;},&#34;hoveron&#34;:&#34;points&#34;,&#34;name&#34;:&#34;#203731&#34;,&#34;legendgroup&#34;:&#34;#203731&#34;,&#34;showlegend&#34;:true,&#34;xaxis&#34;:&#34;x&#34;,&#34;yaxis&#34;:&#34;y&#34;,&#34;hoverinfo&#34;:&#34;text&#34;,&#34;frame&#34;:null},{&#34;x&#34;:[357,893,2122,2486],&#34;y&#34;:[12,19.8,34.9,42.5],&#34;text&#34;:[&#34;Quater: 1&lt;br /&gt;Drive: 3&lt;br /&gt;Time: 09:03&lt;br /&gt;&lt;br /&gt;Score&lt;br /&gt;GB: 6&lt;br /&gt;DAL: 0&#34;,&#34;Quater: 1&lt;br /&gt;Drive: 5&lt;br /&gt;Time: 00:07&lt;br /&gt;&lt;br /&gt;Score&lt;br /&gt;GB: 13&lt;br /&gt;DAL: 0&#34;,&#34;Quater: 3&lt;br /&gt;Drive: 14&lt;br /&gt;Time: 09:38&lt;br /&gt;&lt;br /&gt;Score&lt;br /&gt;GB: 23&lt;br /&gt;DAL: 0&#34;,&#34;Quater: 3&lt;br /&gt;Drive: 16&lt;br /&gt;Time: 03:34&lt;br /&gt;&lt;br /&gt;Score&lt;br /&gt;GB: 30&lt;br /&gt;DAL: 3&#34;],&#34;type&#34;:&#34;scatter&#34;,&#34;mode&#34;:&#34;markers&#34;,&#34;marker&#34;:{&#34;autocolorscale&#34;:false,&#34;color&#34;:&#34;rgba(255,0,0,1)&#34;,&#34;opacity&#34;:1,&#34;size&#34;:7.55905511811024,&#34;symbol&#34;:&#34;circle&#34;,&#34;line&#34;:{&#34;width&#34;:1.88976377952756,&#34;color&#34;:&#34;rgba(255,0,0,1)&#34;}},&#34;hoveron&#34;:&#34;points&#34;,&#34;showlegend&#34;:false,&#34;xaxis&#34;:&#34;x&#34;,&#34;yaxis&#34;:&#34;y&#34;,&#34;hoverinfo&#34;:&#34;text&#34;,&#34;frame&#34;:null},{&#34;visible&#34;:false,&#34;showlegend&#34;:false,&#34;xaxis&#34;:null,&#34;yaxis&#34;:null,&#34;hoverinfo&#34;:&#34;text&#34;,&#34;frame&#34;:null},{&#34;x&#34;:[1800,1800,null,2700,2700,null,900,900],&#34;y&#34;:[-1.18,48.98,null,-1.18,48.98,null,-1.18,48.98],&#34;text&#34;:&#34;&#34;,&#34;type&#34;:&#34;scatter&#34;,&#34;mode&#34;:&#34;lines&#34;,&#34;line&#34;:{&#34;width&#34;:1.88976377952756,&#34;color&#34;:&#34;rgba(0,0,0,0.5)&#34;,&#34;dash&#34;:&#34;dash&#34;},&#34;hoveron&#34;:&#34;points&#34;,&#34;showlegend&#34;:false,&#34;xaxis&#34;:&#34;x&#34;,&#34;yaxis&#34;:&#34;y&#34;,&#34;hoverinfo&#34;:&#34;text&#34;,&#34;frame&#34;:null},{&#34;visible&#34;:false,&#34;showlegend&#34;:false,&#34;xaxis&#34;:&#34;x&#34;,&#34;yaxis&#34;:&#34;y&#34;,&#34;hoverinfo&#34;:&#34;text&#34;,&#34;frame&#34;:null}],&#34;layout&#34;:{&#34;margin&#34;:{&#34;t&#34;:55.1252801992528,&#34;r&#34;:19.2,&#34;b&#34;:40.1215442092155,&#34;l&#34;:57.3901203819012},&#34;font&#34;:{&#34;color&#34;:&#34;rgba(0,0,0,1)&#34;,&#34;family&#34;:&#34;Roboto Thin&#34;,&#34;size&#34;:17.2685761726858},&#34;title&#34;:{&#34;text&#34;:&#34;&lt;b&gt; Aaron Jones - Week 5 &lt;\/b&gt;&#34;,&#34;font&#34;:{&#34;color&#34;:&#34;rgba(0,0,0,1)&#34;,&#34;family&#34;:&#34;Roboto&#34;,&#34;size&#34;:19.9252801992528},&#34;x&#34;:0,&#34;xref&#34;:&#34;paper&#34;},&#34;xaxis&#34;:{&#34;domain&#34;:[0,1],&#34;automargin&#34;:true,&#34;type&#34;:&#34;linear&#34;,&#34;autorange&#34;:false,&#34;range&#34;:[-180,3780],&#34;tickmode&#34;:&#34;array&#34;,&#34;ticktext&#34;:[null],&#34;categoryorder&#34;:&#34;array&#34;,&#34;categoryarray&#34;:[null],&#34;nticks&#34;:null,&#34;ticks&#34;:&#34;&#34;,&#34;tickcolor&#34;:null,&#34;ticklen&#34;:3.65296803652968,&#34;tickwidth&#34;:0,&#34;showticklabels&#34;:false,&#34;tickfont&#34;:{&#34;color&#34;:null,&#34;family&#34;:null,&#34;size&#34;:0},&#34;tickangle&#34;:-0,&#34;showline&#34;:false,&#34;linecolor&#34;:null,&#34;linewidth&#34;:0,&#34;showgrid&#34;:true,&#34;gridcolor&#34;:&#34;rgba(210,210,210,1)&#34;,&#34;gridwidth&#34;:0.66417600664176,&#34;zeroline&#34;:false,&#34;anchor&#34;:&#34;y&#34;,&#34;title&#34;:{&#34;text&#34;:&#34;&lt;b&gt; Time &lt;\/b&gt;&#34;,&#34;font&#34;:{&#34;color&#34;:&#34;rgba(0,0,0,1)&#34;,&#34;family&#34;:&#34;Roboto&#34;,&#34;size&#34;:17.2685761726858}},&#34;hoverformat&#34;:&#34;.2f&#34;},&#34;yaxis&#34;:{&#34;domain&#34;:[0,1],&#34;automargin&#34;:true,&#34;type&#34;:&#34;linear&#34;,&#34;autorange&#34;:false,&#34;range&#34;:[-1.18,48.98],&#34;tickmode&#34;:&#34;array&#34;,&#34;ticktext&#34;:[&#34;0&#34;,&#34;10&#34;,&#34;20&#34;,&#34;30&#34;,&#34;40&#34;],&#34;tickvals&#34;:[0,10,20,30,40],&#34;categoryorder&#34;:&#34;array&#34;,&#34;categoryarray&#34;:[&#34;0&#34;,&#34;10&#34;,&#34;20&#34;,&#34;30&#34;,&#34;40&#34;],&#34;nticks&#34;:null,&#34;ticks&#34;:&#34;&#34;,&#34;tickcolor&#34;:null,&#34;ticklen&#34;:3.65296803652968,&#34;tickwidth&#34;:0,&#34;showticklabels&#34;:true,&#34;tickfont&#34;:{&#34;color&#34;:&#34;rgba(0,0,0,1)&#34;,&#34;family&#34;:&#34;Roboto Thin&#34;,&#34;size&#34;:17.2685761726858},&#34;tickangle&#34;:-0,&#34;showline&#34;:false,&#34;linecolor&#34;:null,&#34;linewidth&#34;:0,&#34;showgrid&#34;:true,&#34;gridcolor&#34;:&#34;rgba(210,210,210,1)&#34;,&#34;gridwidth&#34;:0.66417600664176,&#34;zeroline&#34;:false,&#34;anchor&#34;:&#34;x&#34;,&#34;title&#34;:{&#34;text&#34;:&#34;&lt;b&gt; Fantasy Points &lt;\/b&gt;&#34;,&#34;font&#34;:{&#34;color&#34;:&#34;rgba(0,0,0,1)&#34;,&#34;family&#34;:&#34;Roboto&#34;,&#34;size&#34;:17.2685761726858}},&#34;hoverformat&#34;:&#34;.2f&#34;},&#34;shapes&#34;:[{&#34;type&#34;:&#34;rect&#34;,&#34;fillcolor&#34;:null,&#34;line&#34;:{&#34;color&#34;:null,&#34;width&#34;:0,&#34;linetype&#34;:[]},&#34;yref&#34;:&#34;paper&#34;,&#34;xref&#34;:&#34;paper&#34;,&#34;x0&#34;:0,&#34;x1&#34;:1,&#34;y0&#34;:0,&#34;y1&#34;:1}],&#34;showlegend&#34;:false,&#34;legend&#34;:{&#34;bgcolor&#34;:null,&#34;bordercolor&#34;:null,&#34;borderwidth&#34;:0,&#34;font&#34;:{&#34;color&#34;:&#34;rgba(0,0,0,1)&#34;,&#34;family&#34;:&#34;Roboto Thin&#34;,&#34;size&#34;:13.8148609381486}},&#34;hovermode&#34;:&#34;closest&#34;,&#34;barmode&#34;:&#34;relative&#34;},&#34;config&#34;:{&#34;doubleClick&#34;:&#34;reset&#34;,&#34;showSendToCloud&#34;:false},&#34;source&#34;:&#34;A&#34;,&#34;attrs&#34;:{&#34;6d022c37b91&#34;:{&#34;x&#34;:{},&#34;y&#34;:{},&#34;colour&#34;:{},&#34;type&#34;:&#34;scatter&#34;},&#34;6d047364e9&#34;:{&#34;x&#34;:{},&#34;y&#34;:{},&#34;text&#34;:{},&#34;x.1&#34;:{},&#34;y.1&#34;:{},&#34;colour&#34;:{}},&#34;6d036ad3643&#34;:{&#34;x&#34;:{},&#34;y&#34;:{},&#34;text&#34;:{},&#34;x.1&#34;:{},&#34;y.1&#34;:{},&#34;colour&#34;:{}},&#34;6d077223e6d&#34;:{&#34;xintercept&#34;:{}},&#34;6d041475c53&#34;:{&#34;x&#34;:{}}},&#34;cur_data&#34;:&#34;6d022c37b91&#34;,&#34;visdat&#34;:{&#34;6d022c37b91&#34;:[&#34;function (y) &#34;,&#34;x&#34;],&#34;6d047364e9&#34;:[&#34;function (y) &#34;,&#34;x&#34;],&#34;6d036ad3643&#34;:[&#34;function (y) &#34;,&#34;x&#34;],&#34;6d077223e6d&#34;:[&#34;function (y) &#34;,&#34;x&#34;],&#34;6d041475c53&#34;:[&#34;function (y) &#34;,&#34;x&#34;]},&#34;highlight&#34;:{&#34;on&#34;:&#34;plotly_click&#34;,&#34;persistent&#34;:false,&#34;dynamic&#34;:false,&#34;selectize&#34;:false,&#34;opacityDim&#34;:0.2,&#34;selected&#34;:{&#34;opacity&#34;:1},&#34;debounce&#34;:0},&#34;shinyEvents&#34;:[&#34;plotly_hover&#34;,&#34;plotly_click&#34;,&#34;plotly_selected&#34;,&#34;plotly_relayout&#34;,&#34;plotly_brushed&#34;,&#34;plotly_brushing&#34;,&#34;plotly_clickannotation&#34;,&#34;plotly_doubleclick&#34;,&#34;plotly_deselect&#34;,&#34;plotly_afterplot&#34;,&#34;plotly_sunburstclick&#34;],&#34;base_url&#34;:&#34;https://plot.ly&#34;},&#34;evals&#34;:[],&#34;jsHooks&#34;:[]}&lt;/script&gt;
+&lt;/div&gt;
+&lt;div id=&#34;sammy-watkins---week-1&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Sammy Watkins - Week 1&lt;/h3&gt;
+&lt;p&gt;Similar to McCaffrey, Sammy Watkins hat an unbelivable first week, scoring 46.8 points! Unfortuantely, unlike McCaffrey, he could not reproduce a similar performance again. In fact, Watkins Week 1 performance contributed more than a quater of his total points this season.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;plot_week_performance(&amp;quot;32013030-2d30-3033-3133-32353107e672&amp;quot;, 1, &amp;quot;Sammy Watkins - Week 1&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;div id=&#34;htmlwidget-5&#34; style=&#34;width:2400px;height:1800px;&#34; class=&#34;plotly html-widget&#34;&gt;&lt;/div&gt;
+&lt;script type=&#34;application/json&#34; data-for=&#34;htmlwidget-5&#34;&gt;{&#34;x&#34;:{&#34;data&#34;:[{&#34;x&#34;:[84,240,587,735,1181,1680,1755,1767,2204,2285,2938],&#34;y&#34;:[13.3,15.9,17.7,29.1,31.8,32.8,32.8,32.8,34.1,35.5,42.3],&#34;text&#34;:&#34;&#34;,&#34;type&#34;:&#34;scatter&#34;,&#34;mode&#34;:&#34;lines&#34;,&#34;line&#34;:{&#34;width&#34;:3.77952755905512,&#34;color&#34;:&#34;rgba(227,24,55,1)&#34;,&#34;dash&#34;:&#34;solid&#34;},&#34;hoveron&#34;:&#34;points&#34;,&#34;name&#34;:&#34;#e31837&#34;,&#34;legendgroup&#34;:&#34;#e31837&#34;,&#34;showlegend&#34;:true,&#34;xaxis&#34;:&#34;x&#34;,&#34;yaxis&#34;:&#34;y&#34;,&#34;hoverinfo&#34;:&#34;text&#34;,&#34;frame&#34;:null},{&#34;x&#34;:[84,735,2938],&#34;y&#34;:[13.3,29.1,42.3],&#34;text&#34;:[&#34;Quater: 1&lt;br /&gt;Drive: 1&lt;br /&gt;Time: 13:36&lt;br /&gt;&lt;br /&gt;Score&lt;br /&gt;KC: 6&lt;br /&gt;JAX: 0&#34;,&#34;Quater: 1&lt;br /&gt;Drive: 5&lt;br /&gt;Time: 02:45&lt;br /&gt;&lt;br /&gt;Score&lt;br /&gt;KC: 16&lt;br /&gt;JAX: 7&#34;,&#34;Quater: 4&lt;br /&gt;Drive: 14&lt;br /&gt;Time: 11:02&lt;br /&gt;&lt;br /&gt;Score&lt;br /&gt;KC: 36&lt;br /&gt;JAX: 13&#34;],&#34;type&#34;:&#34;scatter&#34;,&#34;mode&#34;:&#34;markers&#34;,&#34;marker&#34;:{&#34;autocolorscale&#34;:false,&#34;color&#34;:&#34;rgba(255,0,0,1)&#34;,&#34;opacity&#34;:1,&#34;size&#34;:7.55905511811024,&#34;symbol&#34;:&#34;circle&#34;,&#34;line&#34;:{&#34;width&#34;:1.88976377952756,&#34;color&#34;:&#34;rgba(255,0,0,1)&#34;}},&#34;hoveron&#34;:&#34;points&#34;,&#34;showlegend&#34;:false,&#34;xaxis&#34;:&#34;x&#34;,&#34;yaxis&#34;:&#34;y&#34;,&#34;hoverinfo&#34;:&#34;text&#34;,&#34;frame&#34;:null},{&#34;visible&#34;:false,&#34;showlegend&#34;:false,&#34;xaxis&#34;:null,&#34;yaxis&#34;:null,&#34;hoverinfo&#34;:&#34;text&#34;,&#34;frame&#34;:null},{&#34;x&#34;:[1800,1800,null,2700,2700,null,900,900],&#34;y&#34;:[11.85,43.75,null,11.85,43.75,null,11.85,43.75],&#34;text&#34;:&#34;&#34;,&#34;type&#34;:&#34;scatter&#34;,&#34;mode&#34;:&#34;lines&#34;,&#34;line&#34;:{&#34;width&#34;:1.88976377952756,&#34;color&#34;:&#34;rgba(0,0,0,0.5)&#34;,&#34;dash&#34;:&#34;dash&#34;},&#34;hoveron&#34;:&#34;points&#34;,&#34;showlegend&#34;:false,&#34;xaxis&#34;:&#34;x&#34;,&#34;yaxis&#34;:&#34;y&#34;,&#34;hoverinfo&#34;:&#34;text&#34;,&#34;frame&#34;:null},{&#34;visible&#34;:false,&#34;showlegend&#34;:false,&#34;xaxis&#34;:&#34;x&#34;,&#34;yaxis&#34;:&#34;y&#34;,&#34;hoverinfo&#34;:&#34;text&#34;,&#34;frame&#34;:null}],&#34;layout&#34;:{&#34;margin&#34;:{&#34;t&#34;:55.1252801992528,&#34;r&#34;:19.2,&#34;b&#34;:40.1215442092155,&#34;l&#34;:57.3901203819012},&#34;font&#34;:{&#34;color&#34;:&#34;rgba(0,0,0,1)&#34;,&#34;family&#34;:&#34;Roboto Thin&#34;,&#34;size&#34;:17.2685761726858},&#34;title&#34;:{&#34;text&#34;:&#34;&lt;b&gt; Sammy Watkins - Week 1 &lt;\/b&gt;&#34;,&#34;font&#34;:{&#34;color&#34;:&#34;rgba(0,0,0,1)&#34;,&#34;family&#34;:&#34;Roboto&#34;,&#34;size&#34;:19.9252801992528},&#34;x&#34;:0,&#34;xref&#34;:&#34;paper&#34;},&#34;xaxis&#34;:{&#34;domain&#34;:[0,1],&#34;automargin&#34;:true,&#34;type&#34;:&#34;linear&#34;,&#34;autorange&#34;:false,&#34;range&#34;:[-180,3780],&#34;tickmode&#34;:&#34;array&#34;,&#34;ticktext&#34;:[null],&#34;categoryorder&#34;:&#34;array&#34;,&#34;categoryarray&#34;:[null],&#34;nticks&#34;:null,&#34;ticks&#34;:&#34;&#34;,&#34;tickcolor&#34;:null,&#34;ticklen&#34;:3.65296803652968,&#34;tickwidth&#34;:0,&#34;showticklabels&#34;:false,&#34;tickfont&#34;:{&#34;color&#34;:null,&#34;family&#34;:null,&#34;size&#34;:0},&#34;tickangle&#34;:-0,&#34;showline&#34;:false,&#34;linecolor&#34;:null,&#34;linewidth&#34;:0,&#34;showgrid&#34;:true,&#34;gridcolor&#34;:&#34;rgba(210,210,210,1)&#34;,&#34;gridwidth&#34;:0.66417600664176,&#34;zeroline&#34;:false,&#34;anchor&#34;:&#34;y&#34;,&#34;title&#34;:{&#34;text&#34;:&#34;&lt;b&gt; Time &lt;\/b&gt;&#34;,&#34;font&#34;:{&#34;color&#34;:&#34;rgba(0,0,0,1)&#34;,&#34;family&#34;:&#34;Roboto&#34;,&#34;size&#34;:17.2685761726858}},&#34;hoverformat&#34;:&#34;.2f&#34;},&#34;yaxis&#34;:{&#34;domain&#34;:[0,1],&#34;automargin&#34;:true,&#34;type&#34;:&#34;linear&#34;,&#34;autorange&#34;:false,&#34;range&#34;:[11.85,43.75],&#34;tickmode&#34;:&#34;array&#34;,&#34;ticktext&#34;:[&#34;20&#34;,&#34;30&#34;,&#34;40&#34;],&#34;tickvals&#34;:[20,30,40],&#34;categoryorder&#34;:&#34;array&#34;,&#34;categoryarray&#34;:[&#34;20&#34;,&#34;30&#34;,&#34;40&#34;],&#34;nticks&#34;:null,&#34;ticks&#34;:&#34;&#34;,&#34;tickcolor&#34;:null,&#34;ticklen&#34;:3.65296803652968,&#34;tickwidth&#34;:0,&#34;showticklabels&#34;:true,&#34;tickfont&#34;:{&#34;color&#34;:&#34;rgba(0,0,0,1)&#34;,&#34;family&#34;:&#34;Roboto Thin&#34;,&#34;size&#34;:17.2685761726858},&#34;tickangle&#34;:-0,&#34;showline&#34;:false,&#34;linecolor&#34;:null,&#34;linewidth&#34;:0,&#34;showgrid&#34;:true,&#34;gridcolor&#34;:&#34;rgba(210,210,210,1)&#34;,&#34;gridwidth&#34;:0.66417600664176,&#34;zeroline&#34;:false,&#34;anchor&#34;:&#34;x&#34;,&#34;title&#34;:{&#34;text&#34;:&#34;&lt;b&gt; Fantasy Points &lt;\/b&gt;&#34;,&#34;font&#34;:{&#34;color&#34;:&#34;rgba(0,0,0,1)&#34;,&#34;family&#34;:&#34;Roboto&#34;,&#34;size&#34;:17.2685761726858}},&#34;hoverformat&#34;:&#34;.2f&#34;},&#34;shapes&#34;:[{&#34;type&#34;:&#34;rect&#34;,&#34;fillcolor&#34;:null,&#34;line&#34;:{&#34;color&#34;:null,&#34;width&#34;:0,&#34;linetype&#34;:[]},&#34;yref&#34;:&#34;paper&#34;,&#34;xref&#34;:&#34;paper&#34;,&#34;x0&#34;:0,&#34;x1&#34;:1,&#34;y0&#34;:0,&#34;y1&#34;:1}],&#34;showlegend&#34;:false,&#34;legend&#34;:{&#34;bgcolor&#34;:null,&#34;bordercolor&#34;:null,&#34;borderwidth&#34;:0,&#34;font&#34;:{&#34;color&#34;:&#34;rgba(0,0,0,1)&#34;,&#34;family&#34;:&#34;Roboto Thin&#34;,&#34;size&#34;:13.8148609381486}},&#34;hovermode&#34;:&#34;closest&#34;,&#34;barmode&#34;:&#34;relative&#34;},&#34;config&#34;:{&#34;doubleClick&#34;:&#34;reset&#34;,&#34;showSendToCloud&#34;:false},&#34;source&#34;:&#34;A&#34;,&#34;attrs&#34;:{&#34;6d016b275ed&#34;:{&#34;x&#34;:{},&#34;y&#34;:{},&#34;colour&#34;:{},&#34;type&#34;:&#34;scatter&#34;},&#34;6d0514c6395&#34;:{&#34;x&#34;:{},&#34;y&#34;:{},&#34;text&#34;:{},&#34;x.1&#34;:{},&#34;y.1&#34;:{},&#34;colour&#34;:{}},&#34;6d043c42534&#34;:{&#34;x&#34;:{},&#34;y&#34;:{},&#34;text&#34;:{},&#34;x.1&#34;:{},&#34;y.1&#34;:{},&#34;colour&#34;:{}},&#34;6d067d04ee&#34;:{&#34;xintercept&#34;:{}},&#34;6d06f451538&#34;:{&#34;x&#34;:{}}},&#34;cur_data&#34;:&#34;6d016b275ed&#34;,&#34;visdat&#34;:{&#34;6d016b275ed&#34;:[&#34;function (y) &#34;,&#34;x&#34;],&#34;6d0514c6395&#34;:[&#34;function (y) &#34;,&#34;x&#34;],&#34;6d043c42534&#34;:[&#34;function (y) &#34;,&#34;x&#34;],&#34;6d067d04ee&#34;:[&#34;function (y) &#34;,&#34;x&#34;],&#34;6d06f451538&#34;:[&#34;function (y) &#34;,&#34;x&#34;]},&#34;highlight&#34;:{&#34;on&#34;:&#34;plotly_click&#34;,&#34;persistent&#34;:false,&#34;dynamic&#34;:false,&#34;selectize&#34;:false,&#34;opacityDim&#34;:0.2,&#34;selected&#34;:{&#34;opacity&#34;:1},&#34;debounce&#34;:0},&#34;shinyEvents&#34;:[&#34;plotly_hover&#34;,&#34;plotly_click&#34;,&#34;plotly_selected&#34;,&#34;plotly_relayout&#34;,&#34;plotly_brushed&#34;,&#34;plotly_brushing&#34;,&#34;plotly_clickannotation&#34;,&#34;plotly_doubleclick&#34;,&#34;plotly_deselect&#34;,&#34;plotly_afterplot&#34;,&#34;plotly_sunburstclick&#34;],&#34;base_url&#34;:&#34;https://plot.ly&#34;},&#34;evals&#34;:[],&#34;jsHooks&#34;:[]}&lt;/script&gt;
+&lt;/div&gt;
+&lt;div id=&#34;will-fuller---week-5&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Will Fuller - Week 5&lt;/h3&gt;
+&lt;p&gt;Similar to Watkins, Fuller also had one week, that outshined the rest of his season by a mile. He scored the most fantasy points in a game for a Wide Receiver this Year (53.7)&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;plot_week_performance(&amp;quot;32013030-2d30-3033-3331-3237332aee05&amp;quot;, 5, &amp;quot;Will Fuller - Week 5&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;div id=&#34;htmlwidget-6&#34; style=&#34;width:2400px;height:1800px;&#34; class=&#34;plotly html-widget&#34;&gt;&lt;/div&gt;
+&lt;script type=&#34;application/json&#34; data-for=&#34;htmlwidget-6&#34;&gt;{&#34;x&#34;:{&#34;data&#34;:[{&#34;x&#34;:[357,530,647,996,1066,1274,1416,1517,1784,1958,2144,2236,2377,2524,3402,3480],&#34;y&#34;:[1,2.3,9.4,10.1,19.9,20.7,24.8,26.1,26.1,27.2,29.3,29.3,33,34.6,35.8,46.7],&#34;text&#34;:&#34;&#34;,&#34;type&#34;:&#34;scatter&#34;,&#34;mode&#34;:&#34;lines&#34;,&#34;line&#34;:{&#34;width&#34;:3.77952755905512,&#34;color&#34;:&#34;rgba(3,32,47,1)&#34;,&#34;dash&#34;:&#34;solid&#34;},&#34;hoveron&#34;:&#34;points&#34;,&#34;name&#34;:&#34;#03202f&#34;,&#34;legendgroup&#34;:&#34;#03202f&#34;,&#34;showlegend&#34;:true,&#34;xaxis&#34;:&#34;x&#34;,&#34;yaxis&#34;:&#34;y&#34;,&#34;hoverinfo&#34;:&#34;text&#34;,&#34;frame&#34;:null},{&#34;x&#34;:[647,1066,3480],&#34;y&#34;:[9.4,19.9,46.7],&#34;text&#34;:[&#34;Quater: 1&lt;br /&gt;Drive: 4&lt;br /&gt;Time: 04:13&lt;br /&gt;&lt;br /&gt;Score&lt;br /&gt;ATL: 7&lt;br /&gt;HOU: 6&#34;,&#34;Quater: 2&lt;br /&gt;Drive: 6&lt;br /&gt;Time: 12:14&lt;br /&gt;&lt;br /&gt;Score&lt;br /&gt;ATL: 10&lt;br /&gt;HOU: 13&#34;,&#34;Quater: 4&lt;br /&gt;Drive: 20&lt;br /&gt;Time: 02:00&lt;br /&gt;&lt;br /&gt;Score&lt;br /&gt;ATL: 32&lt;br /&gt;HOU: 46&#34;],&#34;type&#34;:&#34;scatter&#34;,&#34;mode&#34;:&#34;markers&#34;,&#34;marker&#34;:{&#34;autocolorscale&#34;:false,&#34;color&#34;:&#34;rgba(255,0,0,1)&#34;,&#34;opacity&#34;:1,&#34;size&#34;:7.55905511811024,&#34;symbol&#34;:&#34;circle&#34;,&#34;line&#34;:{&#34;width&#34;:1.88976377952756,&#34;color&#34;:&#34;rgba(255,0,0,1)&#34;}},&#34;hoveron&#34;:&#34;points&#34;,&#34;showlegend&#34;:false,&#34;xaxis&#34;:&#34;x&#34;,&#34;yaxis&#34;:&#34;y&#34;,&#34;hoverinfo&#34;:&#34;text&#34;,&#34;frame&#34;:null},{&#34;x&#34;:[2144],&#34;y&#34;:[29.3],&#34;text&#34;:&#34;Quater: 3&lt;br /&gt;Drive: 13&lt;br /&gt;Time: 09:16&lt;br /&gt;&lt;br /&gt;Score&lt;br /&gt;ATL: 17&lt;br /&gt;HOU: 23&#34;,&#34;type&#34;:&#34;scatter&#34;,&#34;mode&#34;:&#34;markers&#34;,&#34;marker&#34;:{&#34;autocolorscale&#34;:false,&#34;color&#34;:&#34;rgba(0,0,0,1)&#34;,&#34;opacity&#34;:1,&#34;size&#34;:7.55905511811024,&#34;symbol&#34;:&#34;circle&#34;,&#34;line&#34;:{&#34;width&#34;:1.88976377952756,&#34;color&#34;:&#34;rgba(0,0,0,1)&#34;}},&#34;hoveron&#34;:&#34;points&#34;,&#34;showlegend&#34;:false,&#34;xaxis&#34;:&#34;x&#34;,&#34;yaxis&#34;:&#34;y&#34;,&#34;hoverinfo&#34;:&#34;text&#34;,&#34;frame&#34;:null},{&#34;x&#34;:[1800,1800,null,2700,2700,null,900,900],&#34;y&#34;:[-1.285,48.985,null,-1.285,48.985,null,-1.285,48.985],&#34;text&#34;:&#34;&#34;,&#34;type&#34;:&#34;scatter&#34;,&#34;mode&#34;:&#34;lines&#34;,&#34;line&#34;:{&#34;width&#34;:1.88976377952756,&#34;color&#34;:&#34;rgba(0,0,0,0.5)&#34;,&#34;dash&#34;:&#34;dash&#34;},&#34;hoveron&#34;:&#34;points&#34;,&#34;showlegend&#34;:false,&#34;xaxis&#34;:&#34;x&#34;,&#34;yaxis&#34;:&#34;y&#34;,&#34;hoverinfo&#34;:&#34;text&#34;,&#34;frame&#34;:null},{&#34;visible&#34;:false,&#34;showlegend&#34;:false,&#34;xaxis&#34;:&#34;x&#34;,&#34;yaxis&#34;:&#34;y&#34;,&#34;hoverinfo&#34;:&#34;text&#34;,&#34;frame&#34;:null}],&#34;layout&#34;:{&#34;margin&#34;:{&#34;t&#34;:55.1252801992528,&#34;r&#34;:19.2,&#34;b&#34;:40.1215442092155,&#34;l&#34;:57.3901203819012},&#34;font&#34;:{&#34;color&#34;:&#34;rgba(0,0,0,1)&#34;,&#34;family&#34;:&#34;Roboto Thin&#34;,&#34;size&#34;:17.2685761726858},&#34;title&#34;:{&#34;text&#34;:&#34;&lt;b&gt; Will Fuller - Week 5 &lt;\/b&gt;&#34;,&#34;font&#34;:{&#34;color&#34;:&#34;rgba(0,0,0,1)&#34;,&#34;family&#34;:&#34;Roboto&#34;,&#34;size&#34;:19.9252801992528},&#34;x&#34;:0,&#34;xref&#34;:&#34;paper&#34;},&#34;xaxis&#34;:{&#34;domain&#34;:[0,1],&#34;automargin&#34;:true,&#34;type&#34;:&#34;linear&#34;,&#34;autorange&#34;:false,&#34;range&#34;:[-180,3780],&#34;tickmode&#34;:&#34;array&#34;,&#34;ticktext&#34;:[null],&#34;categoryorder&#34;:&#34;array&#34;,&#34;categoryarray&#34;:[null],&#34;nticks&#34;:null,&#34;ticks&#34;:&#34;&#34;,&#34;tickcolor&#34;:null,&#34;ticklen&#34;:3.65296803652968,&#34;tickwidth&#34;:0,&#34;showticklabels&#34;:false,&#34;tickfont&#34;:{&#34;color&#34;:null,&#34;family&#34;:null,&#34;size&#34;:0},&#34;tickangle&#34;:-0,&#34;showline&#34;:false,&#34;linecolor&#34;:null,&#34;linewidth&#34;:0,&#34;showgrid&#34;:true,&#34;gridcolor&#34;:&#34;rgba(210,210,210,1)&#34;,&#34;gridwidth&#34;:0.66417600664176,&#34;zeroline&#34;:false,&#34;anchor&#34;:&#34;y&#34;,&#34;title&#34;:{&#34;text&#34;:&#34;&lt;b&gt; Time &lt;\/b&gt;&#34;,&#34;font&#34;:{&#34;color&#34;:&#34;rgba(0,0,0,1)&#34;,&#34;family&#34;:&#34;Roboto&#34;,&#34;size&#34;:17.2685761726858}},&#34;hoverformat&#34;:&#34;.2f&#34;},&#34;yaxis&#34;:{&#34;domain&#34;:[0,1],&#34;automargin&#34;:true,&#34;type&#34;:&#34;linear&#34;,&#34;autorange&#34;:false,&#34;range&#34;:[-1.285,48.985],&#34;tickmode&#34;:&#34;array&#34;,&#34;ticktext&#34;:[&#34;0&#34;,&#34;10&#34;,&#34;20&#34;,&#34;30&#34;,&#34;40&#34;],&#34;tickvals&#34;:[0,10,20,30,40],&#34;categoryorder&#34;:&#34;array&#34;,&#34;categoryarray&#34;:[&#34;0&#34;,&#34;10&#34;,&#34;20&#34;,&#34;30&#34;,&#34;40&#34;],&#34;nticks&#34;:null,&#34;ticks&#34;:&#34;&#34;,&#34;tickcolor&#34;:null,&#34;ticklen&#34;:3.65296803652968,&#34;tickwidth&#34;:0,&#34;showticklabels&#34;:true,&#34;tickfont&#34;:{&#34;color&#34;:&#34;rgba(0,0,0,1)&#34;,&#34;family&#34;:&#34;Roboto Thin&#34;,&#34;size&#34;:17.2685761726858},&#34;tickangle&#34;:-0,&#34;showline&#34;:false,&#34;linecolor&#34;:null,&#34;linewidth&#34;:0,&#34;showgrid&#34;:true,&#34;gridcolor&#34;:&#34;rgba(210,210,210,1)&#34;,&#34;gridwidth&#34;:0.66417600664176,&#34;zeroline&#34;:false,&#34;anchor&#34;:&#34;x&#34;,&#34;title&#34;:{&#34;text&#34;:&#34;&lt;b&gt; Fantasy Points &lt;\/b&gt;&#34;,&#34;font&#34;:{&#34;color&#34;:&#34;rgba(0,0,0,1)&#34;,&#34;family&#34;:&#34;Roboto&#34;,&#34;size&#34;:17.2685761726858}},&#34;hoverformat&#34;:&#34;.2f&#34;},&#34;shapes&#34;:[{&#34;type&#34;:&#34;rect&#34;,&#34;fillcolor&#34;:null,&#34;line&#34;:{&#34;color&#34;:null,&#34;width&#34;:0,&#34;linetype&#34;:[]},&#34;yref&#34;:&#34;paper&#34;,&#34;xref&#34;:&#34;paper&#34;,&#34;x0&#34;:0,&#34;x1&#34;:1,&#34;y0&#34;:0,&#34;y1&#34;:1}],&#34;showlegend&#34;:false,&#34;legend&#34;:{&#34;bgcolor&#34;:null,&#34;bordercolor&#34;:null,&#34;borderwidth&#34;:0,&#34;font&#34;:{&#34;color&#34;:&#34;rgba(0,0,0,1)&#34;,&#34;family&#34;:&#34;Roboto Thin&#34;,&#34;size&#34;:13.8148609381486}},&#34;hovermode&#34;:&#34;closest&#34;,&#34;barmode&#34;:&#34;relative&#34;},&#34;config&#34;:{&#34;doubleClick&#34;:&#34;reset&#34;,&#34;showSendToCloud&#34;:false},&#34;source&#34;:&#34;A&#34;,&#34;attrs&#34;:{&#34;6d09c2622&#34;:{&#34;x&#34;:{},&#34;y&#34;:{},&#34;colour&#34;:{},&#34;type&#34;:&#34;scatter&#34;},&#34;6d0188429c1&#34;:{&#34;x&#34;:{},&#34;y&#34;:{},&#34;text&#34;:{},&#34;x.1&#34;:{},&#34;y.1&#34;:{},&#34;colour&#34;:{}},&#34;6d089711d2&#34;:{&#34;x&#34;:{},&#34;y&#34;:{},&#34;text&#34;:{},&#34;x.1&#34;:{},&#34;y.1&#34;:{},&#34;colour&#34;:{}},&#34;6d02be121ef&#34;:{&#34;xintercept&#34;:{}},&#34;6d017c45f4a&#34;:{&#34;x&#34;:{}}},&#34;cur_data&#34;:&#34;6d09c2622&#34;,&#34;visdat&#34;:{&#34;6d09c2622&#34;:[&#34;function (y) &#34;,&#34;x&#34;],&#34;6d0188429c1&#34;:[&#34;function (y) &#34;,&#34;x&#34;],&#34;6d089711d2&#34;:[&#34;function (y) &#34;,&#34;x&#34;],&#34;6d02be121ef&#34;:[&#34;function (y) &#34;,&#34;x&#34;],&#34;6d017c45f4a&#34;:[&#34;function (y) &#34;,&#34;x&#34;]},&#34;highlight&#34;:{&#34;on&#34;:&#34;plotly_click&#34;,&#34;persistent&#34;:false,&#34;dynamic&#34;:false,&#34;selectize&#34;:false,&#34;opacityDim&#34;:0.2,&#34;selected&#34;:{&#34;opacity&#34;:1},&#34;debounce&#34;:0},&#34;shinyEvents&#34;:[&#34;plotly_hover&#34;,&#34;plotly_click&#34;,&#34;plotly_selected&#34;,&#34;plotly_relayout&#34;,&#34;plotly_brushed&#34;,&#34;plotly_brushing&#34;,&#34;plotly_clickannotation&#34;,&#34;plotly_doubleclick&#34;,&#34;plotly_deselect&#34;,&#34;plotly_afterplot&#34;,&#34;plotly_sunburstclick&#34;],&#34;base_url&#34;:&#34;https://plot.ly&#34;},&#34;evals&#34;:[],&#34;jsHooks&#34;:[]}&lt;/script&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&#34;visualization-of-season-perfomance&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Visualization of season perfomance&lt;/h2&gt;
+&lt;p&gt;Now that we looked at individual games, let’s have a look at the whole season of a player.&lt;br /&gt;
+To do that we need to create one of these plots for every game and display them together using &lt;code&gt;facet_wrap()&lt;/code&gt;.&lt;br /&gt;
+Let’s create a function again. It’s will be very similar to the game plot function only a few things are different. We will color the odd weeks in the primary color and the even weeks in the secondary color of the players NFL team. We also need to convert &lt;code&gt;week&lt;/code&gt; to factor in order to sort the facets.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;plot_season_performance &amp;lt;- function(player_id, plot_title) {
+  pbp %&amp;gt;%
+    filter(receiver_player_id == player_id | rusher_player_id == player_id) %&amp;gt;%
+    calc_ff_season() %&amp;gt;%
+    arrange(week) %&amp;gt;%
+    mutate(
+      line_color = ifelse(week %% 2 == 1, primary, secondary),
+      week_nr = week,
+      week = glue::glue(&amp;quot;Week {week} ({ff_points_total})&amp;quot;)
+    ) %&amp;gt;%
+    mutate_at(vars(week), funs(factor(., levels = unique(.)))) %&amp;gt;%
+    ggplot(aes(time_in_sec, ff_points_sum)) +
+    geom_line(aes(color = line_color), size = 1) +
+    geom_point(
+      shape = 19, color = &amp;quot;red&amp;quot;, size = 2, data = . %&amp;gt;% filter(touchdown == T),
+      aes(time_in_sec, ff_points_sum)
+    ) +
+    geom_point(
+      shape = 19, color = &amp;quot;red&amp;quot;, size = 2, data = . %&amp;gt;% filter(touchdown == T),
+      aes(time_in_sec, ff_points_sum)
+    ) +
+    scale_color_identity() +
+    facet_wrap(~week) +
+    geom_vline(xintercept = c(900, 1800, 2700), alpha = .5, lty = 2) +
+    expand_limits(x = c(0, 3600)) +
+    scale_x_continuous(labels = NULL, breaks = NULL) +
+    theme_hubnr_thin(11) +
+    labs(
+      title = plot_title,
+      x = NULL,
+      y = &amp;quot;Fantasy Points&amp;quot;
+    ) +
+    theme(strip.text.x = element_text(size = 11, face = &amp;quot;plain&amp;quot;))
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now we are able to look at performances over a whole season.&lt;/p&gt;
+&lt;div id=&#34;christian-mccaffrey&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Christian McCaffrey&lt;/h3&gt;
+&lt;p&gt;Without a doubt the most valuable Running Back this season was Christian McCaffrey. Execpt for the previously mentioned Week 2 (and maybe Week 13) he was always great.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;plot_season_performance(&amp;quot;32013030-2d30-3033-3332-3830ec2c3be7&amp;quot;, &amp;quot;Christian McCaffrey - Fantasy Football Season 2019&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;/post/2020-08-18-visualizing-the-best-fantasy-football-performances-of-the-2019-season.en_files/figure-html/unnamed-chunk-12-1.png&#34; width=&#34;2400&#34; /&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;kenyan-drake&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Kenyan Drake&lt;/h3&gt;
+&lt;p&gt;As mentioned earlier Drake had a bad first half, so his season wasn’t that great. I mainly picked him because you can see how the coloring work. Drake was on the Dolphins for the first 8 weeks of the season and after that played for the Cardinals. You can see the coloring of the plot chaning accordingly.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;plot_season_performance(&amp;quot;32013030-2d30-3033-3331-31385a388006&amp;quot;, &amp;quot;Kenyan Drake - Fantasy Football Season 2019&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;/post/2020-08-18-visualizing-the-best-fantasy-football-performances-of-the-2019-season.en_files/figure-html/unnamed-chunk-13-1.png&#34; width=&#34;2400&#34; /&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;michael-thomas&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Michael Thomas&lt;/h3&gt;
+&lt;p&gt;Michael Thomas was the best Wide Receiver for Fantasy in the 2019 season.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;plot_season_performance(&amp;quot;32013030-2d30-3033-3237-36359afa5261&amp;quot;, &amp;quot;Michael Thomas - Fantasy Football Season 2019&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;/post/2020-08-18-visualizing-the-best-fantasy-football-performances-of-the-2019-season.en_files/figure-html/unnamed-chunk-14-1.png&#34; width=&#34;2400&#34; /&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;travis-kelce&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Travis Kelce&lt;/h3&gt;
+&lt;p&gt;Travis Kelce was the best Tight End for Fantasy in the 2019 season.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;plot_season_performance(&amp;quot;32013030-2d30-3033-3035-3036654ef292&amp;quot;, &amp;quot;Travis Kelce - Fantasy Football Season 2019&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;/post/2020-08-18-visualizing-the-best-fantasy-football-performances-of-the-2019-season.en_files/figure-html/unnamed-chunk-15-1.png&#34; width=&#34;2400&#34; /&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Scraping Counter Strike Match History</title>
+      <link>/post/cs-go-scrape/</link>
+      <pubDate>Tue, 05 May 2020 00:00:00 +0000</pubDate>
+      <guid>/post/cs-go-scrape/</guid>
+      <description>
+&lt;script src=&#34;/rmarkdown-libs/header-attrs/header-attrs.js&#34;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;Seit ein paar Jahren ist Steam verprlichtet alle persönlichen Daten über einen offen zu legen. Das schließt auch einen Spielverlauf mit ein. Über diesen Weg kann man&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;#Extract Raw Tables
+#Every Match Has Two Tables:
+#Left Contains Gerneral Information about the Game, e.g. Duration, Map
+#Right Contains Information about players, like the ingame Scoreboard
+
+right_html_data &amp;lt;- read_html(&amp;quot;./data/steam_data.html&amp;quot;) %&amp;gt;% 
+  html_nodes(&amp;quot;.csgo_scoreboard_inner_right&amp;quot;) %&amp;gt;% 
+  html_table()
+
+left_html_data &amp;lt;- read_html(&amp;quot;./data/steam_data.html&amp;quot;) %&amp;gt;% 
+  html_nodes(&amp;quot;.csgo_scoreboard_inner_left&amp;quot;) %&amp;gt;% 
+  html_table()&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;extract_right_side &amp;lt;- function(right_table) {
+  score_extr &amp;lt;- right_table %&amp;gt;% filter(row_number() == 6) %&amp;gt;% pull(Score) %&amp;gt;% 
+    str_extract_all(., &amp;quot;\\d+&amp;quot;) #Extract Game Score (Always in Row 6)
+  
+  right_table %&amp;gt;% 
+    as_tibble() %&amp;gt;% 
+    rename(mvp = 6) %&amp;gt;% 
+    clean_names() %&amp;gt;% 
+    mutate(team_id = ifelse(row_number() &amp;lt;= 5,1,2),
+         score_t1 = score_extr[[1]][1],
+         score_t2 = score_extr[[1]][2],
+         mvp = str_replace(mvp, &amp;quot;\\u2605&amp;quot; , &amp;quot;star&amp;quot;),
+         mvp = ifelse(mvp == &amp;quot;star&amp;quot;,1, mvp),
+         mvp = parse_number(mvp),
+         mvp = ifelse(is.na(mvp),0,mvp),
+         hsp = parse_number(hsp)) %&amp;gt;% 
+    filter(row_number() != 6)
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;extract_left_side &amp;lt;- function(left_table) {
+  tibble(map = left_table[1][1,1],
+           timestamp = left_table[1][2,1],
+           wait_time = str_extract(left_table[1][3,1],&amp;quot;\\d+:\\d+&amp;quot;),
+           match_duration = str_extract(left_table[1][4,1],&amp;quot;\\d+:\\d+&amp;quot;)) %&amp;gt;% 
+    slice(rep(1:n(), each = 10))
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;right_data &amp;lt;- lapply(right_html_data, extract_right_side) %&amp;gt;% bind_rows()
+left_data &amp;lt;- lapply(left_html_data, extract_left_side) %&amp;gt;% bind_rows()
+
+cs_data &amp;lt;- left_data %&amp;gt;%
+  bind_cols(right_data) %&amp;gt;%
+  mutate(game_id = (row_number() - 1) %/% 10)
+
+cs_data&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## # A tibble: 2,210 x 16
+##    map   timestamp wait_time match_duration player_name ping  k     a     d    
+##    &amp;lt;chr&amp;gt; &amp;lt;chr&amp;gt;     &amp;lt;chr&amp;gt;     &amp;lt;chr&amp;gt;          &amp;lt;chr&amp;gt;       &amp;lt;chr&amp;gt; &amp;lt;chr&amp;gt; &amp;lt;chr&amp;gt; &amp;lt;chr&amp;gt;
+##  1 Comp~ 2020-05-~ 00:12     32:31          Sergio Mar~ 43    17    5     18   
+##  2 Comp~ 2020-05-~ 00:12     32:31          Dadix       45    13    4     21   
+##  3 Comp~ 2020-05-~ 00:12     32:31          dex6y       30    10    6     19   
+##  4 Comp~ 2020-05-~ 00:12     32:31          duk5x       35    12    0     20   
+##  5 Comp~ 2020-05-~ 00:12     32:31          &amp;lt;U+2764&amp;gt; St&amp;lt;U+03AD&amp;gt;fa&amp;lt;U+03BD&amp;gt; -~ 48    10    1     18   
+##  6 Comp~ 2020-05-~ 00:12     32:31          /SlasH/     57    26    5     12   
+##  7 Comp~ 2020-05-~ 00:12     32:31          ShokoN      31    21    4     13   
+##  8 Comp~ 2020-05-~ 00:12     32:31          CERNVNN0S   24    16    4     13   
+##  9 Comp~ 2020-05-~ 00:12     32:31          add instag~ 17    17    2     14   
+## 10 Comp~ 2020-05-~ 00:12     32:31          Awesome     49    14    2     12   
+## # ... with 2,200 more rows, and 7 more variables: mvp &amp;lt;dbl&amp;gt;, hsp &amp;lt;dbl&amp;gt;,
+## #   score &amp;lt;chr&amp;gt;, team_id &amp;lt;dbl&amp;gt;, score_t1 &amp;lt;chr&amp;gt;, score_t2 &amp;lt;chr&amp;gt;, game_id &amp;lt;dbl&amp;gt;&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Examining Win Probabilities Playing Maexchen</title>
       <link>/post/maexchen-game/</link>
       <pubDate>Mon, 04 May 2020 00:00:00 +0000</pubDate>
       <guid>/post/maexchen-game/</guid>
       <description>
+&lt;script src=&#34;/rmarkdown-libs/header-attrs/header-attrs.js&#34;&gt;&lt;/script&gt;
 
 
 &lt;p&gt;Mäxchen is a popular german dice game. It’s not complex at all, so it can be played by everybody from young to old. While playing it during the last family gathering I wondered what the ideal decisions in this game are. It is quite simple and you can pretty much play it instantly but I wanted to know the exact chances of winning for each dice result. In this blogpost I will simulate playing the game and analyze what your chances of winning are. The rules for this game allow you to lie about your result, but we won’t get into that. Lets get started!&lt;/p&gt;
