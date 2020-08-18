@@ -69,6 +69,8 @@
     
 
     
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.5.1/leaflet.css" integrity="sha256-SHMGCYmST46SoyGgo4YR/9AlK1vf3ff84Aq9yK4hdqM=" crossorigin="anonymous">
+    
 
     
 
@@ -212,8 +214,8 @@
   
 
   <link rel="manifest" href="/index.webmanifest">
-  <link rel="icon" type="image/png" href="/images/icon_hubdc61f67c4acee99af4fb8a14828136d_14904_32x32_fill_lanczos_center_2.png">
-  <link rel="apple-touch-icon" type="image/png" href="/images/icon_hubdc61f67c4acee99af4fb8a14828136d_14904_192x192_fill_lanczos_center_2.png">
+  <link rel="icon" type="image/png" href="/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_32x32_fill_lanczos_center_2.png">
+  <link rel="apple-touch-icon" type="image/png" href="/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_192x192_fill_lanczos_center_2.png">
 
   <link rel="canonical" href="/404.html">
 
@@ -230,14 +232,11 @@
   
   <meta property="twitter:card" content="summary">
   
-  <meta property="twitter:site" content="@MaxHuebner36">
-  <meta property="twitter:creator" content="@MaxHuebner36">
-  
   <meta property="og:site_name" content="Max Hübner">
   <meta property="og:url" content="/404.html">
   <meta property="og:title" content="404 Page not found | Max Hübner">
-  <meta property="og:description" content="Computer Science Student"><meta property="og:image" content="/images/icon_hubdc61f67c4acee99af4fb8a14828136d_14904_512x512_fill_lanczos_center_2.png">
-  <meta property="twitter:image" content="/images/icon_hubdc61f67c4acee99af4fb8a14828136d_14904_512x512_fill_lanczos_center_2.png"><meta property="og:locale" content="en-us">
+  <meta property="og:description" content="Computer Science Student"><meta property="og:image" content="/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_512x512_fill_lanczos_center_2.png">
+  <meta property="twitter:image" content="/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_512x512_fill_lanczos_center_2.png"><meta property="og:locale" content="en-us">
   
     
   
@@ -277,7 +276,8 @@
 
       <div id="search-box">
         
-        
+        <input name="q" id="search-query" placeholder="Search..." autocapitalize="off"
+        autocomplete="off" autocorrect="off" spellcheck="false" type="search">
         
       </div>
 
@@ -381,6 +381,10 @@
 
     <ul class="nav-icons navbar-nav flex-row ml-auto d-flex pl-md-2">
       
+      <li class="nav-item">
+        <a class="nav-link js-search" href="#"><i class="fas fa-search" aria-hidden="true"></i></a>
+      </li>
+      
 
       
 
@@ -398,6 +402,10 @@
 
   
   
+  <form class="d-flex align-items-center mb-3">
+    <input name="q" type="search" class="form-control" placeholder="Search..." autocomplete="off">
+  </form>
+  
 
   
 
@@ -409,7 +417,11 @@
   <h2>Latest</h2>
   <ul>
     
-      <li><a href="/post/maexchen-game/">Examining Win Probabilities Playing Maexchen</a></li>
+      <li><a href="/post/test-post-please-ignore/">Test Post Please Ignore</a></li>
+    
+      <li><a href="/post/test-post-please-ignore/">Test Post Please Ignore</a></li>
+    
+      <li><a href="/post/test-post-please-ignore/">Test Post Please Ignore</a></li>
     
       <li><a href="/about/">About</a></li>
     
@@ -418,6 +430,10 @@
       <li><a href="/terms/">Terms</a></li>
     
       <li><a href="/post/2015-07-23-r-rmarkdown/">Hello R Markdown</a></li>
+    
+      <li><a href="/post/copyof2015-07-23-r-rmarkdown/">Hello R Markdown</a></li>
+    
+      <li><a href="/post/copyofcopyof2015-07-23-r-rmarkdown/">Hello R Markdown</a></li>
     
   </ul>
   
@@ -448,6 +464,8 @@
 
     
     
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.5.1/leaflet.js" integrity="sha256-EErZamuLefUnbMBQbsEqu1USa+btR2oIlCpBJbyD4/g=" crossorigin="anonymous"></script>
+    
 
     
     
@@ -460,11 +478,46 @@
     
 
     
+    
+    
+    
+    
+    
+    <script>
+      const search_config = {"indexURI":"/index.json","minLength":1,"threshold":0.3};
+      const i18n = {"no_results":"No results found","placeholder":"Search...","results":"results found"};
+      const content_type = {
+        'post': "Posts",
+        'project': "Projects",
+        'publication' : "Publications",
+        'talk' : "Talks"
+        };
+    </script>
+    
 
     
     
 
     
+    
+    <script id="search-hit-fuse-template" type="text/x-template">
+      <div class="search-hit" id="summary-{{key}}">
+      <div class="search-hit-content">
+        <div class="search-hit-name">
+          <a href="{{relpermalink}}">{{title}}</a>
+          <div class="article-metadata search-hit-type">{{type}}</div>
+          <p class="search-hit-description">{{snippet}}</p>
+        </div>
+      </div>
+      </div>
+    </script>
+    
+
+    
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/3.2.1/fuse.min.js" integrity="sha256-VzgmKYmhsGNNN4Ph1kMW+BjoYJM2jV5i4IlFoeZA9XI=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/jquery.mark.min.js" integrity="sha256-4HLtjeVgH0eIB3aZ9mLYF6E8oU5chNdjU6p6rrXpl9U=" crossorigin="anonymous"></script>
+    
 
     
     
@@ -477,7 +530,6 @@
 
     
     
-
     
     
     
@@ -485,12 +537,12 @@
     
     
     
+      
     
     
     
     
-    
-    <script src="/js/academic.min.6f7ce8be710290b8c431bbc97f405d15.js"></script>
+    <script src="/js/academic.min.37431be2d92d7fb0160054761ab79602.js"></script>
 
     
 
