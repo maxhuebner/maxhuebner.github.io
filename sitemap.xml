@@ -4,42 +4,32 @@
   
   <url>
     <loc>/categories/</loc>
-    <lastmod>2020-05-04T18:54:42+02:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/post/maexchen-game/</loc>
-    <lastmod>2020-05-04T18:54:42+02:00</lastmod>
+    <lastmod>2020-05-04T16:16:10+02:00</lastmod>
   </url>
   
   <url>
     <loc>/post/</loc>
-    <lastmod>2020-05-04T18:54:42+02:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/tag/r/</loc>
-    <lastmod>2020-05-04T18:54:42+02:00</lastmod>
+    <lastmod>2020-05-04T16:16:10+02:00</lastmod>
   </url>
   
   <url>
     <loc>/category/r/</loc>
-    <lastmod>2020-05-04T18:54:42+02:00</lastmod>
+    <lastmod>2020-05-04T16:16:10+02:00</lastmod>
   </url>
   
   <url>
-    <loc>/tag/rstats/</loc>
-    <lastmod>2020-05-04T18:54:42+02:00</lastmod>
+    <loc>/post/test-post-please-ignore/</loc>
+    <lastmod>2020-05-04T16:16:10+02:00</lastmod>
   </url>
   
   <url>
-    <loc>/category/rstats/</loc>
-    <lastmod>2020-05-04T18:54:42+02:00</lastmod>
+    <loc>/post/test-post-please-ignore/</loc>
+    <lastmod>2020-05-04T16:16:10+02:00</lastmod>
   </url>
   
   <url>
-    <loc>/tags/</loc>
-    <lastmod>2020-05-04T18:54:42+02:00</lastmod>
+    <loc>/post/test-post-please-ignore/</loc>
+    <lastmod>2020-05-04T16:16:10+02:00</lastmod>
   </url>
   
   <url>
@@ -68,6 +58,16 @@
   </url>
   
   <url>
+    <loc>/post/copyof2015-07-23-r-rmarkdown/</loc>
+    <lastmod>2015-07-23T21:13:14-05:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/post/copyofcopyof2015-07-23-r-rmarkdown/</loc>
+    <lastmod>2015-07-23T21:13:14-05:00</lastmod>
+  </url>
+  
+  <url>
     <loc>/tag/plot/</loc>
     <lastmod>2015-07-23T21:13:14-05:00</lastmod>
   </url>
@@ -79,6 +79,11 @@
   
   <url>
     <loc>/tag/regression/</loc>
+    <lastmod>2015-07-23T21:13:14-05:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/tags/</loc>
     <lastmod>2015-07-23T21:13:14-05:00</lastmod>
   </url>
   
