@@ -4,7 +4,7 @@
   
   <url>
     <loc>/categories/</loc>
-    <lastmod>2020-08-18T16:33:20+02:00</lastmod>
+    <lastmod>2020-08-18T20:03:22+02:00</lastmod>
   </url>
   
   <url>
@@ -19,7 +19,17 @@
   
   <url>
     <loc>/post/</loc>
-    <lastmod>2020-08-18T16:33:20+02:00</lastmod>
+    <lastmod>2020-08-18T20:03:22+02:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/category/python/</loc>
+    <lastmod>2020-08-18T20:03:22+02:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/tag/python-webscraping-selenium/</loc>
+    <lastmod>2020-08-18T20:03:22+02:00</lastmod>
   </url>
   
   <url>
@@ -43,13 +53,23 @@
   </url>
   
   <url>
+    <loc>/post/scraping-rankings-from-sleeper-with-selenium/</loc>
+    <lastmod>2020-08-18T20:03:22+02:00</lastmod>
+  </url>
+  
+  <url>
     <loc>/tags/</loc>
-    <lastmod>2020-08-18T16:33:20+02:00</lastmod>
+    <lastmod>2020-08-18T20:03:22+02:00</lastmod>
   </url>
   
   <url>
     <loc>/post/visualizing-the-best-fantasy-football-performances-of-the-2019-season/</loc>
     <lastmod>2020-08-18T16:33:20+02:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/category/webscraping/</loc>
+    <lastmod>2020-08-18T20:03:22+02:00</lastmod>
   </url>
   
   <url>

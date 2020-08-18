@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>python webscraping selenium | Max Hübner</title>
+    <link>/tag/python-webscraping-selenium/</link>
+      <atom:link href="/tag/python-webscraping-selenium/index.xml" rel="self" type="application/rss+xml" />
+    <description>python webscraping selenium</description>
+    <generator>Source Themes Academic (https://sourcethemes.com/academic/)</generator><language>en-us</language><copyright>© Max Hübner 2020</copyright><lastBuildDate>Tue, 18 Aug 2020 00:00:00 +0000</lastBuildDate>
+    <image>
+      <url>/images/icon_hubdc61f67c4acee99af4fb8a14828136d_14904_512x512_fill_lanczos_center_2.png</url>
+      <title>python webscraping selenium</title>
+      <link>/tag/python-webscraping-selenium/</link>
+    </image>
+    
+    <item>
+      <title>Scraping Rankings from Sleeper with Selenium</title>
+      <link>/post/scraping-rankings-from-sleeper-with-selenium/</link>
+      <pubDate>Tue, 18 Aug 2020 00:00:00 +0000</pubDate>
+      <guid>/post/scraping-rankings-from-sleeper-with-selenium/</guid>
+      <description>
+&lt;script src=&#34;/rmarkdown-libs/header-attrs/header-attrs.js&#34;&gt;&lt;/script&gt;
+
+
+&lt;p&gt;This Post will show you how to scrape the in-draft rankings from &lt;a href=&#34;https://sleeper.app&#34;&gt;sleeper.app&lt;/a&gt; using Python and &lt;em&gt;Selenium&lt;/em&gt;.&lt;/p&gt;
+&lt;div id=&#34;prerequisites&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Prerequisites&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://sleeper.app&#34;&gt;sleeper.app&lt;/a&gt;-Account&lt;/li&gt;
+&lt;li&gt;At least one open mock draft in this account&lt;/li&gt;
+&lt;li&gt;Downloaded &lt;em&gt;chromedriver.exe&lt;/em&gt; from &lt;a href=&#34;https://chromedriver.chromium.org/downloads&#34;&gt;here&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Installed Packages Selenium and Pandas&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div id=&#34;approach&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Approach&lt;/h3&gt;
+&lt;p&gt;We will need the following imports:&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.chrome.options import Options
+
+import pandas as pd
+import time
+from datetime import date&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Next we will need to setup the script. If you want to run it headless you can by uncommenting these lines, I find it, however, interesting to look at the window move.&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;USERNAME = &amp;quot;INSERT USERNAME HERE&amp;quot;  # Sleeper.app Username
+PASSWORD = &amp;quot;INSERT PASSWORD HERE&amp;quot;  # Sleeper.app Password
+
+chrome_options = Options()
+# If you uncomment these line the browser will run headless meaning
+# it wont open a browser window for you to look at
+# chrome_options.add_argument(&amp;quot;--headless&amp;quot;)
+# chrome_options.add_argument(&amp;quot;--disable-gpu&amp;quot;)
+
+# My chromedriver.exe is in the project path. Update accordingly
+driver = webdriver.Chrome(executable_path =  &amp;#39;./driver/chromedriver.exe&amp;#39;, options=chrome_options)
+driver.get(&amp;quot;https://sleeper.app/login&amp;quot;)  # Get to the Login Page&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;After this code has ran, the controlled Chromebrowser will show a login page. We need to log into our account.&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;# Find Username field using XPath - Fill in Username
+driver.find_element_by_xpath(&amp;quot;//input&amp;quot;).send_keys(USERNAME)
+
+# Find Login Button - Clock
+loginButton = driver.find_element_by_xpath(&amp;#39;//*[contains(concat( &amp;quot; &amp;quot;, @class, &amp;quot; &amp;quot; ), concat( &amp;quot; &amp;quot;, &amp;quot;login-button&amp;quot;, &amp;quot; &amp;quot; ))]&amp;#39;)
+loginButton.click()
+
+time.sleep(2)
+
+# After First Click Password Field Will Show Up - Enter Password and click again
+driver.find_elements_by_xpath(&amp;#39;//input&amp;#39;)[1].send_keys(PASSWORD)
+loginButton.click()&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We are now logged in. The next step would be to navigate to our previously created mock draft and have a look at its rankings.&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;# LOGGED IN NOW - Waiting just to make sure
+time.sleep(10)
+
+# Click Mock Draft Page - Click on first Mock Draft Found
+# HINT: You NEED to create this mock draft by hand before
+driver.find_element_by_xpath(&amp;#39;//*[contains(concat( &amp;quot; &amp;quot;, @class, &amp;quot; &amp;quot; ), concat( &amp;quot; &amp;quot;, &amp;quot;nav-draftboard-item&amp;quot;, &amp;quot; &amp;quot; ))]//*[contains(concat( &amp;quot; &amp;quot;, @class, &amp;quot; &amp;quot; ), concat( &amp;quot; &amp;quot;, &amp;quot;title&amp;quot;, &amp;quot; &amp;quot; ))]&amp;#39;).click()
+time.sleep(5)
+driver.find_element_by_class_name(&amp;quot;draft-list-item&amp;quot;).click()
+time.sleep(2)
+
+# Switch To New Mock Draft Tab
+# Although it looks like it, the active window is not yet the mock draft
+driver.switch_to.window(driver.window_handles[1])&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We are now in a draft lobby and can see the rankings. Let’s scrape them:&lt;br /&gt;
+(The Python comments should explain pretty well what the code is doing)&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;# Init Data Loading Web Driver
+wait = WebDriverWait(driver,15)
+
+scraped_elements = set()  # Contains ID&amp;#39;s of already scraped names
+execute_loop = True
+rows_list = []  # Contains Dicts - Row of our DataFrame
+rank = 1  # Counter for Rank
+while execute_loop:
+    # Get Visible Entries
+    names = wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, &amp;#39;.name-wrapper&amp;#39;)))
+    for name in names:
+        if name.id in scraped_elements:  # Already Scraped
+            continue
+
+        # New Player
+        scraped_elements.add(name.id)
+        data_extract = name.text.split(&amp;#39;\n&amp;#39;)
+
+        if len(data_extract) &amp;lt; 3:  # Not Fully Loaded -&amp;gt; Remove Again
+            scraped_elements.remove(name.id)
+            break
+
+        rows_list.append({
+            &amp;quot;rank&amp;quot;: rank,
+            &amp;quot;name&amp;quot;: data_extract[0],
+            &amp;quot;pos&amp;quot;: data_extract[1],
+            &amp;quot;team&amp;quot;: data_extract[2]
+        })
+
+        print(f&amp;quot;{rank} - {data_extract[0]}&amp;quot;)
+
+        rank += 1
+
+        if len(rows_list) &amp;gt;= 300:  # Only Scrape First 300 Players
+            print(&amp;quot;ABORTING..&amp;quot;)
+            execute_loop = False
+
+    # Scroll Down
+    # .odd is every other row
+    # (You could probably scroll down more/faster)
+    ActionChains(driver).move_to_element(driver.find_elements_by_css_selector(&amp;quot;.odd&amp;quot;)[5]).perform()&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We have successfully scraped the top 300 player list on Sleeper! We need to save the data in a last step:&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;# Write CSV
+df = pd.DataFrame(data=rows_list)
+print(df)
+df.to_csv(f&amp;quot;data/sleeper-mock-ranks-{date.today()}.csv&amp;quot;, index=False)
+driver.quit()  # Quit&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;After that we have a &lt;em&gt;.csv&lt;/em&gt; with our scraped players.&lt;/p&gt;
+&lt;p&gt;If you want to download the script, click &lt;a href=&#34;https://maxhuebner.github.io/post/data/sleeper_extract_mock_data.py&#34;&gt;here&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;If you don’t want to run the script yourself click &lt;a href=&#34;https://maxhuebner.github.io/post/data/sleeper-mock-ranks-2020-08-18.csv&#34;&gt;here&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>
