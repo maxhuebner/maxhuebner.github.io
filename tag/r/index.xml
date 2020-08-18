@@ -186,7 +186,8 @@ First we filter out only the plays for our player (using his id) and the given w
 &lt;code&gt;text_disp&lt;/code&gt; will contain the text, that we want to display if you hover over an event. Events are either a Touchdown, which we will display as a red dot or a fumble, which will be a black dot.&lt;br /&gt;
 The Line, that shows the Fantasy Points over Game Time will be colored in the primary color of the players team.&lt;br /&gt;
 Each quater will be seperated by a dashed &lt;em&gt;vline&lt;/em&gt;. The rest of the code is necessary so that plotly won’t display labels for the time axis.&lt;/p&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(plotly)
+&lt;p&gt;&lt;strong&gt;Edit&lt;/strong&gt;: Unfortunately Plotly does not seem to work in this environment, Plotly Plot will display, but in completely wrong dimensions. Therefore I will comment out the Plotly Part. The Rest won’t be changed so you could just run &lt;code&gt;ggplotly(p, tooltip = &#34;text&#34;)&lt;/code&gt; on your plot.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# library(plotly)
 
 plot_week_performance &amp;lt;- function(player_id, week_nr, plot_title) {
   p &amp;lt;- pbp %&amp;gt;%
@@ -223,7 +224,8 @@ plot_week_performance &amp;lt;- function(player_id, week_nr, plot_title) {
       axis.text.x = element_blank()
     )
 
-  ggplotly(p, tooltip = &amp;quot;text&amp;quot;)
+  # ggplotly(p, tooltip = &amp;quot;text&amp;quot;)
+  p
 }&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;Now that we have our plot generating function, we should test it on some of the best fantasy performances of the last season.&lt;br /&gt;
 In order to get results you need a player_id, which you can get by filtering the dataset for the specific player (Hint: Kenyan Drake would be ‘K.Drake’). I will omit this step for this post.&lt;/p&gt;
