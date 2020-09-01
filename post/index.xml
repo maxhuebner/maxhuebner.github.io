@@ -30,7 +30,8 @@ In this post we will compare the consensus Expert Ranking on &lt;a href=&#34;htt
 &lt;h3&gt;Data Gathering&lt;/h3&gt;
 &lt;p&gt;First, we should load our scraped mock ranks. Since we are only interested in &lt;em&gt;skill positions&lt;/em&gt; and Quaterbacks, we remove everything else.&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;sleeper_ranks &amp;lt;- 
-  read_csv(&amp;quot;https://maxhuebner.github.io/post/data/sleeper-mock-ranks-2020-08-18.csv&amp;quot;) %&amp;gt;% 
+  #read_csv(&amp;quot;https://maxhuebner.github.io/post/data/sleeper-mock-ranks-2020-09-01.csv&amp;quot;) %&amp;gt;%
+  read_csv(&amp;quot;https://raw.githubusercontent.com/maxhuebner/maxhuebner.github.io/master/post/data/sleeper-mock-ranks-2020-09-01.csv&amp;quot;) %&amp;gt;% 
   filter((pos %in% c(&amp;quot;QB&amp;quot;,&amp;quot;RB&amp;quot;,&amp;quot;WR&amp;quot;,&amp;quot;TE&amp;quot;)))&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;Next, we need data to compare. Let’s scrape the data from the FantasyPros-website using the package &lt;em&gt;rvest&lt;/em&gt;. The Data is stored in a &lt;code&gt;&amp;lt;table&amp;gt;&lt;/code&gt; tag so we can us rvest’s function &lt;code&gt;html_table()&lt;/code&gt;.&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;fantasypros_url &amp;lt;- &amp;quot;https://www.fantasypros.com/nfl/rankings/half-point-ppr-cheatsheets.php&amp;quot;

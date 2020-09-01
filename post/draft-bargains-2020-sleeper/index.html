@@ -546,7 +546,8 @@ In this post we will compare the consensus Expert Ranking on <a href="https://ww
 <h3>Data Gathering</h3>
 <p>First, we should load our scraped mock ranks. Since we are only interested in <em>skill positions</em> and Quaterbacks, we remove everything else.</p>
 <pre class="r"><code>sleeper_ranks &lt;- 
-  read_csv(&quot;https://maxhuebner.github.io/post/data/sleeper-mock-ranks-2020-08-18.csv&quot;) %&gt;% 
+  #read_csv(&quot;https://maxhuebner.github.io/post/data/sleeper-mock-ranks-2020-09-01.csv&quot;) %&gt;%
+  read_csv(&quot;https://raw.githubusercontent.com/maxhuebner/maxhuebner.github.io/master/post/data/sleeper-mock-ranks-2020-09-01.csv&quot;) %&gt;% 
   filter((pos %in% c(&quot;QB&quot;,&quot;RB&quot;,&quot;WR&quot;,&quot;TE&quot;)))</code></pre>
 <p>Next, we need data to compare. Let’s scrape the data from the FantasyPros-website using the package <em>rvest</em>. The Data is stored in a <code>&lt;table&gt;</code> tag so we can us rvest’s function <code>html_table()</code>.</p>
 <pre class="r"><code>fantasypros_url &lt;- &quot;https://www.fantasypros.com/nfl/rankings/half-point-ppr-cheatsheets.php&quot;
